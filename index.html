@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBSA Kitabisa - Semua Anak Bisa Belajar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(to bottom, #bae6fd 0%, #e0f2fe 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 20%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 25%),
+                radial-gradient(circle at 50% 60%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 30%);
+            z-index: -1;
+        }
+    </style>
+</head>
+
+<body class="text-slate-900 flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header
+        class="container mx-auto px-6 py-4 flex items-center justify-between bg-white/40 backdrop-blur-md rounded-b-3xl shadow-sm border-b border-white/50 sticky top-0 z-50">
+        <!-- Logo -->
+        <div class="flex flex-col items-center">
+            <div class="text-3xl font-black tracking-tight leading-none flex">
+                <span class="text-purple-600">K</span>
+                <span class="text-teal-500 relative">i<span
+                        class="absolute -top-1 -right-0.5 text-yellow-400 text-xs">✦</span></span>
+                <span class="text-teal-500">B</span>
+                <span class="text-green-500">S</span>
+                <span class="text-teal-500">A</span>
+            </div>
+            <span class="text-[0.65rem] font-bold tracking-widest text-slate-500 uppercase mt-0.5">Kitabisa</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="hidden md:flex items-center space-x-2">
+            <a href="#"
+                class="px-5 py-2 rounded-full border-2 border-indigo-500 bg-white/80 text-indigo-700 font-bold shadow-sm transition hover:bg-indigo-50">Beranda</a>
+            <button onclick="openTentangModal()"
+                class="px-5 py-2 rounded-full border-2 border-transparent text-slate-600 font-semibold hover:bg-white/60 transition">Tentang
+                KIBSA</button>
+            <a href="#materi-admin"
+                class="px-5 py-2 rounded-full border-2 border-transparent text-slate-600 font-semibold hover:bg-white/60 transition">Materi</a>
+            <a href="#info-event"
+                class="px-5 py-2 rounded-full border-2 border-transparent text-slate-600 font-semibold hover:bg-white/60 transition">Info/Event</a>
+        </nav>
+
+        <!-- Admin Action -->
+        <div class="hidden sm:flex items-center space-x-3">
+            <div id="admin-badge" class="hidden"></div>
+            <button id="loginBtn" onclick="handleAdminLogin()"
+                class="px-5 py-2 rounded-full bg-slate-800 text-white font-semibold hover:bg-slate-700 transition shadow-md">Login
+                Admin</button>
+            <button id="logoutBtn" onclick="handleAdminLogout()"
+                class="hidden px-5 py-2 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition shadow-md">Logout</button>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button class="md:hidden text-slate-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+        </button>
+    </header>
+
+    <!-- Hero Section -->
+    <section
+        class="container mx-auto px-6 pt-12 pb-20 md:pt-20 md:pb-32 flex flex-col-reverse md:flex-row items-center relative z-10">
+        <!-- Left Content -->
+        <div class="md:w-1/2 mt-12 md:mt-0 text-center md:text-left">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-4">
+                Semua Anak <br class="hidden md:block" />Bisa Belajar
+            </h1>
+            <div class="h-1.5 w-24 bg-gradient-to-r from-blue-500 to-green-400 rounded-full mb-6 mx-auto md:mx-0"></div>
+            <p class="text-lg text-slate-700 mb-8 max-w-lg mx-auto md:mx-0 leading-relaxed font-medium">
+                KIBSA kitabisa adalah platform belajar gratis untuk semua anak. Akses Materi, latihan, dan tantangan
+                seru untuk membantu kamu tumbuh dan meraih mimpi.
+            </p>
+            <a href="#materi-admin"
+                class="inline-block bg-indigo-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:bg-indigo-700 hover:-translate-y-1 transition-all duration-300">
+                Mulai Belajar Sekarang
+            </a>
+        </div>
+
+        <!-- Right Image (Ilustrasi Kartun Anak Gembira Belajar) -->
+        <div class="md:w-1/2 relative flex justify-center items-center">
+            <div class="absolute w-72 h-72 bg-white/40 rounded-full blur-2xl -z-10"></div>
+            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/boy-and-girl-reading-book-together-5617616-4674335.png"
+                alt="Anak-anak belajar bahagia"
+                class="w-full max-w-md h-auto drop-shadow-2xl hover:-translate-y-2 transition-transform duration-500"
+                onerror="this.src='https://cdn3d.iconscout.com/3d/premium/thumb/students-learning-online-4268364-3561007.png'">
+        </div>
+    </section>
+
+    <!-- Wave Divider -->
+    <div class="w-full overflow-hidden leading-none z-20 relative -mb-1">
+        <svg class="relative block w-[calc(100%+1.3px)] h-[80px] md:h-[120px]" data-name="Layer 1"
+            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path
+                d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118,130.42,122.9,190.25,116.89,235.19,112.38,278.4,92.74,321.39,56.44Z"
+                fill="#a3e635"></path>
+        </svg>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="bg-gradient-to-b from-[#a3e635] via-[#ecfccb] to-white pb-24 pt-8 flex-grow">
+
+        <!-- SECTION: 4 KARTU MENU UTAMA -->
+        <section class="container mx-auto px-6 mb-24">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">Pilih Kebutuhan Belajarmu</h2>
+                <p class="text-slate-700 text-lg font-medium">KIBSA kitabisa hadir dengan berbagai layanan pendidikan
+                    untuk mendukung perjalanan belajarmu, sesuai kebutuhanmu.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1: Untuk Anak -->
+                <div
+                    class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                    <div class="p-6 flex-grow">
+                        <div class="w-24 h-24 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-16 h-16 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Untuk Anak</h3>
+                        <p class="text-slate-600 text-sm text-center mb-4">Materi & games seru khusus kelas 1 sampai 6
+                            SD.</p>
+                        <div class="flex flex-wrap justify-center gap-1.5 mb-6">
+                            <span
+                                class="text-[0.65rem] font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full">Materi</span>
+                            <span
+                                class="text-[0.65rem] font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full">Quiz</span>
+                            <span
+                                class="text-[0.65rem] font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full">Games</span>
+                            <span
+                                class="text-[0.65rem] font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full">Otak
+                                Hebat</span>
+                        </div>
+                    </div>
+                    <div class="p-6 pt-0 mt-auto">
+                        <a href="#materi-admin"
+                            class="block w-full py-2.5 px-4 bg-green-500 hover:bg-green-600 text-white font-bold text-sm text-center rounded-full transition-colors shadow-sm">Masuk
+                            ke Untuk Anak &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Card 2: Uji Mandiri -->
+                <div
+                    class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                    <div class="p-6 flex-grow">
+                        <div class="w-24 h-24 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                            <svg class="w-16 h-16 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Uji Mandiri</h3>
+                        <p class="text-slate-600 text-sm text-center mb-4">Latihan dan simulasi ujian persiapan jenjang
+                            lanjut.</p>
+                        <div class="flex flex-wrap justify-center gap-1.5 mb-6">
+                            <span
+                                class="text-[0.65rem] font-bold bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">Latihan
+                                Soal</span>
+                            <span
+                                class="text-[0.65rem] font-bold bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">Simulasi</span>
+                            <span
+                                class="text-[0.65rem] font-bold bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">Pembahasan</span>
+                        </div>
+                    </div>
+                    <div class="p-6 pt-0 mt-auto">
+                        <a href="#materi-admin"
+                            class="block w-full py-2.5 px-4 bg-purple-500 hover:bg-purple-600 text-white font-bold text-sm text-center rounded-full transition-colors shadow-sm">Masuk
+                            ke Uji Mandiri &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Card 3: Otak Hebat -->
+                <div
+                    class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                    <div class="p-6 flex-grow">
+                        <div class="w-24 h-24 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                            <svg class="w-16 h-16 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Otak Hebat</h3>
+                        <p class="text-slate-600 text-sm text-center mb-4">Tantangan seru melatih logika, memori, dan
+                            daya pikir.</p>
+                        <div class="flex flex-wrap justify-center gap-1.5 mb-6">
+                            <span
+                                class="text-[0.65rem] font-bold bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Numerik</span>
+                            <span
+                                class="text-[0.65rem] font-bold bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Logika</span>
+                            <span
+                                class="text-[0.65rem] font-bold bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Memori</span>
+                        </div>
+                    </div>
+                    <div class="p-6 pt-0 mt-auto">
+                        <a href="#materi-admin"
+                            class="block w-full py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm text-center rounded-full transition-colors shadow-sm">Masuk
+                            ke Otak Hebat &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Card 4: Proyek & Program -->
+                <div
+                    class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                    <div class="p-6 flex-grow">
+                        <div class="w-24 h-24 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                            <svg class="w-16 h-16 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Proyek & Program</h3>
+                        <p class="text-slate-600 text-sm text-center mb-4">Berbagai proyek, kolaborasi, dan program
+                            edukasi KIBSA.</p>
+                        <div class="flex flex-wrap justify-center gap-1.5 mb-6">
+                            <span
+                                class="text-[0.65rem] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Project</span>
+                            <span
+                                class="text-[0.65rem] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Program</span>
+                            <span
+                                class="text-[0.65rem] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Kolaborasi</span>
+                        </div>
+                    </div>
+                    <div class="p-6 pt-0 mt-auto">
+                        <a href="#info-event"
+                            class="block w-full py-2.5 px-4 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm text-center rounded-full transition-colors shadow-sm">Lihat
+                            Semua Proyek &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: MATERI FIREBASE (ADMIN & KUIS) -->
+        <section id="materi-admin" class="container mx-auto px-6 max-w-6xl mb-24">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b-2 border-green-500/30 pb-4">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 flex items-center gap-3">
+                        <span>📚</span> Materi Belajar Interaktif
+                    </h2>
+                    <p class="text-slate-600 font-medium mt-2">Bahan ajar tematik Kelas 1–6 SD dengan kuis & otak hebat.
+                    </p>
+                </div>
+                <button id="add-material-btn"
+                    class="hidden mt-4 md:mt-0 bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition">
+                    + Tambah Materi
+                </button>
+            </div>
+            <!-- WADAH MATERI FIREBASE -->
+            <div id="material-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- SECTION: INFO/EVENT FIREBASE -->
+        <section id="info-event" class="container mx-auto px-6 max-w-6xl">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b-2 border-indigo-500/30 pb-4">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 flex items-center gap-3">
+                        <span>📋</span> Galeri Poster & Info/Event
+                    </h2>
+                    <p class="text-slate-600 font-medium mt-2">Informasi dan perlombaan terbaru dari KIBSA.</p>
+                </div>
+                <button id="add-poster-btn"
+                    class="hidden mt-4 md:mt-0 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition">
+                    + Tambah Poster
+                </button>
+            </div>
+            <!-- WADAH POSTER FIREBASE -->
+            <div id="poster-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </section>
+
+    </main>
+
+    <!-- Footer Profesional (Gaya BKAD) -->
+    <footer class="bg-[#1e293b] text-white pt-16 pb-8">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-10 mb-12">
+            <div>
+                <h2 class="text-3xl font-black text-blue-400 tracking-tight mb-2">KIBSA</h2>
+                <p class="text-xs text-slate-400 uppercase tracking-widest mb-4 font-bold">KITA BISA</p>
+                <p class="text-slate-300 text-sm leading-relaxed mb-4 max-w-sm">
+                    Platform pendidikan digital / education portal yang berdedikasi untuk memberikan akses pembelajaran
+                    berkualitas bagi seluruh anak Sekolah Dasar.
+                </p>
+                <p class="italic font-medium text-blue-300">"Semua Anak Berhak Belajar."</p>
+            </div>
+            <div class="md:text-right">
+                <h3 class="text-lg font-bold text-slate-100 mb-5">Kontak & Layanan</h3>
+                <a href="https://t.me/6285757034924" target="_blank" rel="noopener noreferrer"
+                    class="inline-flex items-center space-x-3 bg-blue-500/10 hover:bg-blue-600 border border-blue-500/30 hover:border-transparent text-blue-300 hover:text-white px-5 py-3 rounded-xl transition duration-300 group shadow-lg">
+                    <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                    </svg>
+                    <span class="font-semibold text-sm">Hubungi via Telegram</span>
+                </a>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto px-6">
+            <div
+                class="border-t-[3px] border-blue-500 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-slate-400">
+                <p>Copyright © 2026 DIMAS. All Rights Reserved.</p>
+                <p class="mt-3 md:mt-0">Dikelola oleh Administrator KIBSA</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- KUMPULAN MODAL (JANGAN DIHAPUS) -->
+    <!-- Modal Tentang KIBSA -->
+    <div id="tentangModal"
+        class="hidden fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-8 relative shadow-2xl">
+            <button onclick="closeTentangModal()"
+                class="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold text-2xl transition">&times;</button>
+            <h2 class="text-3xl font-extrabold text-blue-600 mb-2">Tentang KIBSA</h2>
+            <p class="text-slate-500 mb-6 border-b border-slate-100 pb-4">Mengenal lebih dekat platform pendidikan
+                digital KITA BISA.</p>
+            <div class="space-y-6 text-sm text-slate-700">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <h3 class="font-bold text-lg text-slate-900 border-b border-slate-200 pb-2 mb-3">Identitas Platform
+                    </h3>
+                    <ul class="space-y-2">
+                        <li><span class="font-semibold text-slate-800">Nama:</span> KITA BISA</li>
+                        <li><span class="font-semibold text-slate-800">Brand mark:</span> KIBSA</li>
+                        <li><span class="font-semibold text-slate-800">Jenis:</span> Platform pendidikan digital /
+                            education portal</li>
+                        <li><span class="font-semibold text-slate-800">Tagline:</span> "Semua Anak Berhak Belajar."</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-slate-900 flex items-center"><span class="mr-2">💡</span>Filosofi
+                    </h3>
+                    <p class="mt-2 leading-relaxed bg-blue-50/50 p-4 rounded-lg border border-blue-100 text-blue-900">
+                        Kesempatan belajar tidak seharusnya dibatasi oleh kondisi ekonomi atau keterbatasan sumber
+                        belajar.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-slate-900 flex items-center"><span class="mr-2">📖</span>Latar
+                        Belakang</h3>
+                    <p class="mt-2 leading-relaxed text-justify">Masih terdapat anak yang memiliki keterbatasan akses
+                        terhadap buku, modul, dan sumber belajar berkualitas. KITA BISA hadir sebagai upaya menghadirkan
+                        akses belajar digital yang lebih mudah, gratis untuk materi inti, dan ramah pengguna.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-slate-900 flex items-center"><span class="mr-2">🔭</span>Visi</h3>
+                    <p class="mt-2 leading-relaxed text-justify">Menjadi platform pendidikan digital yang membantu lebih
+                        banyak orang memperoleh kesempatan belajar melalui layanan yang mudah diakses, sederhana,
+                        berkualitas, dan terus berkembang.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-slate-900 flex items-center"><span class="mr-2">🎯</span>Misi</h3>
+                    <ul class="list-decimal pl-5 mt-2 space-y-2 leading-relaxed">
+                        <li>Menyediakan akses belajar digital yang mudah dan gratis untuk materi inti.</li>
+                        <li>Mengembangkan pengalaman belajar visual, interaktif, dan ramah pengguna.</li>
+                        <li>Menyatukan berbagai layanan pendidikan dalam satu ekosistem.</li>
+                        <li>Membantu anak mengembangkan kemampuan akademik dan kemampuan berpikir.</li>
+                        <li>Mengembangkan produk berdasarkan kebutuhan pengguna melalui riset, testing, dan feedback.
+                        </li>
+                        <li>Membuka peluang kolaborasi dengan sekolah, komunitas, sponsor, dan pihak pendukung
+                            pendidikan.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Admin Poster -->
+    <div id="admin-poster-modal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-lg p-6 shadow-2xl">
+            <h2 id="poster-modal-title" class="text-xl font-bold mb-4">Tambah Poster</h2>
+            <form id="poster-form" class="space-y-4">
+                <div><label class="block text-sm font-bold mb-1">Judul Poster/Event</label><input type="text"
+                        id="poster-title" class="w-full border rounded p-2" required></div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">Kategori</label>
+                    <select id="poster-category" class="w-full border rounded p-2">
+                        <option>Lomba</option>
+                        <option>Info Akademik</option>
+                        <option>Pengumuman</option>
+                    </select>
+                </div>
+                <div><label class="block text-sm font-bold mb-1">URL Gambar (Link)</label><input type="url"
+                        id="poster-image-url" class="w-full border rounded p-2" required></div>
+                <div><label class="block text-sm font-bold mb-1">Link Pendaftaran (Opsional)</label><input type="url"
+                        id="poster-link" class="w-full border rounded p-2"></div>
+                <div><label class="block text-sm font-bold mb-1">Tanggal</label><input type="date" id="poster-date"
+                        class="w-full border rounded p-2" required></div>
+                <div><label class="block text-sm font-bold mb-1">Deskripsi Singkat</label><textarea
+                        id="poster-description" class="w-full border rounded p-2" rows="3" required></textarea></div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" id="poster-cancel-btn"
+                        class="px-4 py-2 bg-gray-200 rounded font-bold">Batal</button>
+                    <button type="submit" id="poster-submit-btn"
+                        class="px-4 py-2 bg-blue-600 text-white rounded font-bold">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Admin Materi -->
+    <div id="admin-material-modal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+            <h2 id="material-modal-title" class="text-xl font-bold mb-4">Tambah Materi Baru</h2>
+            <form id="material-form" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Jenjang/Kelas</label>
+                        <select id="mat-jenjang" class="w-full border rounded p-2">
+                            <option>Kelas 1 SD</option>
+                            <option>Kelas 2 SD</option>
+                            <option>Kelas 3 SD</option>
+                            <option>Kelas 4 SD</option>
+                            <option>Kelas 5 SD</option>
+                            <option>Kelas 6 SD</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-sm font-bold mb-1">Mata Pelajaran</label><input type="text"
+                            id="mat-matpel" class="w-full border rounded p-2" required></div>
+                </div>
+                <div><label class="block text-sm font-bold mb-1">Judul Topik</label><input type="text" id="mat-judul"
+                        class="w-full border rounded p-2" required></div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">Karakter Maskot</label>
+                    <select id="mat-karakter" class="w-full border rounded p-2">
+                        <option>Kiko</option>
+                        <option>Bimo</option>
+                        <option>Lala</option>
+                    </select>
+                </div>
+                <div><label class="block text-sm font-bold mb-1">Tujuan Belajar</label><textarea id="mat-tujuan"
+                        class="w-full border rounded p-2" rows="2" required></textarea></div>
+                <div><label class="block text-sm font-bold mb-1">Data Konten Slide (JSON Array)</label><textarea
+                        id="mat-konten" class="w-full border rounded p-2 font-mono text-xs" rows="4">[]</textarea></div>
+                <div><label class="block text-sm font-bold mb-1">Data Latihan Soal (JSON Array)</label><textarea
+                        id="mat-latihan" class="w-full border rounded p-2 font-mono text-xs" rows="4">[]</textarea>
+                </div>
+                <div><label class="block text-sm font-bold mb-1">Otak Hebat (Tantangan Akhir)</label><textarea
+                        id="mat-otakhebat" class="w-full border rounded p-2" rows="2"></textarea></div>
+                <div><label class="block text-sm font-bold mb-1">Link Download PPTX Panduan Guru</label><input
+                        type="url" id="mat-download" class="w-full border rounded p-2"></div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" id="mat-cancel-btn"
+                        class="px-4 py-2 bg-gray-200 rounded font-bold">Batal</button>
+                    <button type="submit" id="mat-submit-btn"
+                        class="px-4 py-2 bg-green-600 text-white rounded font-bold">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Viewer Slide/Kuis -->
+    <div id="slide-viewer-modal" class="hidden fixed inset-0 bg-white z-[70] flex flex-col">
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md">
+            <h2 id="slide-viewer-title" class="font-bold text-lg md:text-xl truncate">Materi Belajar</h2>
+            <button id="close-slide-btn"
+                class="bg-white/20 hover:bg-white/30 rounded-full w-8 h-8 flex items-center justify-center font-bold">X</button>
+        </div>
+        <div id="mascot-container" class="bg-indigo-50 border-b border-indigo-100 p-4 flex items-center gap-4">
+            <div id="mascot-img"
+                class="w-12 h-12 bg-white rounded-full shadow flex items-center justify-center text-2xl"></div>
+            <div id="mascot-speech"
+                class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-700 border border-slate-200 flex-grow">
+            </div>
+        </div>
+        <div id="slide-content" class="flex-grow overflow-y-auto bg-slate-50 flex items-center justify-center p-4">
+        </div>
+        <div class="bg-white border-t border-slate-200 p-4 flex justify-between items-center">
+            <button id="prev-slide-btn"
+                class="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-full disabled:opacity-50">KEMBALI</button>
+            <span id="slide-page-info" class="font-bold text-slate-500">1 / 1</span>
+            <button id="next-slide-btn"
+                class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full disabled:opacity-50">LANJUT</button>
+        </div>
+    </div>
+
+    <!-- Modal Input Nama Siswa -->
+    <div id="student-name-modal"
+        class="hidden fixed inset-0 bg-black/70 z-[80] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl">
+            <div class="text-4xl mb-4">👋</div>
+            <h3 class="text-xl font-bold mb-2">Halo! Siapa namamu?</h3>
+            <p class="text-slate-500 text-sm mb-6">Masukkan nama supaya maskot KIBSA bisa memanggilmu.</p>
+            <form id="student-name-form">
+                <input type="text" id="student-name-input"
+                    class="w-full border-2 border-slate-200 rounded-xl p-3 text-center text-lg font-bold mb-4 focus:border-indigo-500 outline-none"
+                    placeholder="Nama Panggilan" required>
+                <div class="flex gap-2">
+                    <button type="button" id="student-name-cancel"
+                        class="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200">Batal</button>
+                    <button type="submit"
+                        class="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700">Mulai
+                        Belajar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openTentangModal() { document.getElementById('tentangModal').classList.remove('hidden'); }
+        function closeTentangModal() { document.getElementById('tentangModal').classList.add('hidden'); }
+    </script>
+    <script type="module" src="./app.js"></script>
+</body>
+
+</html>
