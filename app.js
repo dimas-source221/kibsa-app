@@ -148,6 +148,35 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log('[KIBSA] Signed out');
         }
     };
+    // ======================================
+    // LOGI SISWA (MASUK & TAMPILAN PROFIL)
+    // ======================================
+    window.openStudentLogin = () => {
+        if (studentNameModal) {
+            studentNameModal.dataset.pendingId = ''; // Buka tanpa materi spesifik
+            studentNameModal.classList.remove('hidden');
+        }
+    };
+
+    window.updateStudentUI = () => {
+        const savedId = localStorage.getItem('kibsa_student_id');
+        const savedName = localStorage.getItem('kibsa_student_name');
+        const badge = document.getElementById('student-badge');
+        const btn = document.getElementById('student-login-btn');
+        const nameDisp = document.getElementById('student-name-display');
+        const idDisp = document.getElementById('student-id-display');
+
+        if (savedId && savedName) {
+            studentName = savedName; // update global
+            if (badge) { badge.classList.remove('hidden'); badge.classList.add('flex'); }
+            if (btn) btn.classList.add('hidden');
+            if (nameDisp) nameDisp.innerText = savedName;
+            if (idDisp) idDisp.innerText = 'ID: ' + savedId;
+        }
+    };
+
+    // Jalankan pengecekan saat pertama web dimuat
+    updateStudentUI();
 
     // ======================================
     // MODAL HANDLERS
@@ -248,6 +277,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 studentName = name;
                 studentNameModal.classList.add('hidden');
+
+                updateStudentUI();
 
                 const pendingId = studentNameModal.dataset.pendingId;
                 if (pendingId) _launchSlide(pendingId);
