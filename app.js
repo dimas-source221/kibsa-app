@@ -81,9 +81,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // ======================================
     // AUTH STATE LISTENER
     // ======================================
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         currentUser = user;
-        if (user && user.email === ADMIN_EMAIL) {
+        if (user) {
+            // --- KUNCI KEAMANAN HANYA UNTUK DIMAS ---
+            if (user.email !== 'dimndot@gmail.com') {
+                await signOut(auth); // Langsung keluarkan akun yang bukan emailmu
+                alert("Maaf, akses ini khusus untuk Admin KIBSA.");
+                return; // Hentikan sistem admin
+            }
+            // ----------------------------------------
+
             isAdmin = true;
             // Show admin UI (dengan perlindungan anti-error)
             if (loginBtn) loginBtn.classList.add('hidden');

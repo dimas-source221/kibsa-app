@@ -65,7 +65,7 @@
 
         <!-- User & Admin Action -->
         <div class="hidden sm:flex items-center space-x-3">
-            <!-- Profil Siswa (Akan muncul setelah masuk) -->
+            <!-- Profil Siswa (Otomatis muncul kalau siswa sudah daftar ID) -->
             <div id="student-badge" class="hidden flex-col items-end mr-2">
                 <span id="student-name-display" class="text-sm font-extrabold text-slate-800"></span>
                 <span id="student-id-display"
@@ -79,13 +79,12 @@
             <!-- Garis Pemisah -->
             <div class="w-px h-6 bg-slate-200 mx-2"></div>
 
-            <!-- Tombol Admin (Dibuat kecil seperti link biasa) -->
+            <!-- Tombol Admin (Ukurannya kecil di pojok biar siswa gak iseng klik) -->
             <div id="admin-badge" class="hidden"></div>
             <button id="loginBtn" onclick="handleAdminLogin()"
                 class="text-xs font-bold text-slate-400 hover:text-slate-600 transition">Admin</button>
             <button id="logoutBtn" onclick="handleAdminLogout()"
-                class="hidden px-4 py-1.5 rounded-full bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition">Logout
-                Admin</button>
+                class="hidden px-4 py-1.5 rounded-full bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition">Logout</button>
         </div>
 
         <!-- Mobile Menu Button -->
