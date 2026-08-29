@@ -1,5 +1,5 @@
 import { db, auth, googleProvider } from './firebase-config.js';
-import { collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // ======================================
@@ -203,14 +203,62 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     if (studentNameForm) {
-        studentNameForm.addEventListener('submit', (e) => {
+        studentNameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = studentNameInput ? studentNameInput.value.trim() : '';
             if (!name) return;
-            studentName = name;
-            studentNameModal.classList.add('hidden');
-            const pendingId = studentNameModal.dataset.pendingId;
-            if (pendingId) _launchSlide(pendingId);
+
+            const submitBtn = studentNameForm.querySelector('button[type="submit"]');
+            submitBtn.innerText = 'Membuat ID...';
+            submitBtn.disabled = true;
+
+            try {
+                // Cek apakah siswa sudah punya ID di perangkat ini
+                let savedId = localStorage.getItem('kibsa_student_id');
+                let savedName = localStorage.getItem('kibsa_student_name');
+
+                // Jika nama berbeda atau belum punya ID, buat ID baru
+                if (!savedId || savedName !== name) {
+                    // 1. Dapatkan tanggal hari ini (DDMMYY)
+                    const now = new Date();
+                    const d = String(now.getDate()).padStart(2, '0');
+                    const m = String(now.getMonth() + 1).padStart(2, '0');
+                    const y = String(now.getFullYear()).slice(-2);
+                    const dateStr = `${d}${m}${y}`;
+
+                    // 2. Hitung jumlah siswa di database untuk nomor urut
+                    const studentsSnap = await getDocs(collection(db, "students"));
+                    const urutan = String(studentsSnap.size + 1).padStart(2, '0'); // Pendaftar ke-1 jadi "01", ke-8 jadi "08"
+
+                    // 3. Gabungkan jadi ID (contoh: 08300826)
+                    savedId = `${urutan}${dateStr}`;
+
+                    // 4. Simpan ke database Firebase dan memori laptop/HP siswa
+                    await addDoc(collection(db, "students"), {
+                        nama: name,
+                        id_siswa: savedId,
+                        tanggal_daftar: new Date().toISOString()
+                    });
+
+                    localStorage.setItem('kibsa_student_id', savedId);
+                    localStorage.setItem('kibsa_student_name', name);
+
+                    alert(`Selamat datang, ${name}!\nID Belajarmu adalah: ${savedId}\n(Harap diingat atau dicatat ya!)`);
+                }
+
+                studentName = name;
+                studentNameModal.classList.add('hidden');
+
+                const pendingId = studentNameModal.dataset.pendingId;
+                if (pendingId) _launchSlide(pendingId);
+
+            } catch (error) {
+                console.error("Gagal membuat ID:", error);
+                alert("Terjadi kesalahan sistem saat membuat ID.");
+            } finally {
+                submitBtn.innerText = 'Mulai Belajar';
+                submitBtn.disabled = false;
+            }
         });
     }
 
