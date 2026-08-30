@@ -29,6 +29,88 @@
                 radial-gradient(circle at 50% 60%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 30%);
             z-index: -1;
         }
+
+        /* ====== [BARU] POIN 1: NAVIGASI KAPSUL SERAGAM + EFEK INTERAKTIF ====== */
+        .nav-pill {
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            font-weight: 700;
+            color: #475569;
+            background: rgba(255, 255, 255, 0.6);
+            transition: all 0.25s ease;
+            transform: translateY(0) scale(1);
+        }
+
+        .nav-pill:hover {
+            background: #ffffff;
+            border-color: #6366f1;
+            color: #4338ca;
+            box-shadow: 0 6px 14px -4px rgba(79, 70, 229, 0.35);
+            transform: translateY(-3px) scale(1.03);
+        }
+
+        .nav-pill:active {
+            transform: translateY(-1px) scale(0.97);
+        }
+
+        .nav-pill.nav-pill-active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: #ffffff;
+            box-shadow: 0 8px 16px -4px rgba(79, 70, 229, 0.5);
+        }
+
+        .nav-pill.nav-pill-active:hover {
+            background: #4338ca;
+            color: #ffffff;
+        }
+
+        /* ====== [BARU] POIN 3: KOTAK KELAS & LEVEL BERANTAI ====== */
+        .kelas-box {
+            transition: all 0.3s ease;
+        }
+
+        .kelas-box:hover {
+            transform: translateY(-6px);
+        }
+
+        .level-card {
+            transition: all 0.25s ease;
+        }
+
+        .level-card.level-locked {
+            filter: grayscale(0.6);
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .level-card.level-unlocked {
+            cursor: pointer;
+        }
+
+        .level-card.level-unlocked:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px -6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ====== [BARU] POIN 4: SLIDER POSTER AUTO-PLAY ====== */
+        #poster-carousel-track {
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.5);
+            transition: all 0.25s ease;
+        }
+
+        .carousel-dot.active {
+            width: 22px;
+            background: #ffffff;
+        }
     </style>
 </head>
 
@@ -50,17 +132,12 @@
             <span class="text-[0.65rem] font-bold tracking-widest text-slate-500 uppercase mt-0.5">Kitabisa</span>
         </div>
 
-        <!-- Navigation -->
-        <nav class="hidden md:flex items-center space-x-2">
-            <a href="#"
-                class="px-5 py-2 rounded-full border-2 border-indigo-500 bg-white/80 text-indigo-700 font-bold shadow-sm transition hover:bg-indigo-50">Beranda</a>
-            <button onclick="openTentangModal()"
-                class="px-5 py-2 rounded-full border-2 border-transparent text-slate-600 font-semibold hover:bg-white/60 transition">Tentang
-                KIBSA</button>
-            <a href="#materi-admin"
-                class="px-5 py-2 rounded-full border-2 border-transparent text-slate-600 font-semibold hover:bg-white/60 transition">Materi</a>
-            <a href="#info-event"
-                class="px-5 py-2 rounded-full border-2 border-transparent text-slate-600 font-semibold hover:bg-white/60 transition">Info/Event</a>
+        <!-- [DIUBAH] POIN 1: Navigation jadi kapsul seragam, data-nav-target untuk active state via JS -->
+        <nav class="hidden md:flex items-center space-x-2" id="main-nav">
+            <a href="#" data-nav="beranda" class="nav-pill nav-pill-active">Beranda</a>
+            <button onclick="openTentangModal()" data-nav="tentang" class="nav-pill">Tentang KIBSA</button>
+            <a href="#kelas-section" data-nav="materi" class="nav-pill">Materi</a>
+            <a href="#info-event" data-nav="event" class="nav-pill">Info/Event</a>
         </nav>
 
         <!-- User & Admin Action -->
@@ -108,7 +185,7 @@
                 KIBSA kitabisa adalah platform belajar gratis untuk semua anak. Akses Materi, latihan, dan tantangan
                 seru untuk membantu kamu tumbuh dan meraih mimpi.
             </p>
-            <a href="#materi-admin"
+            <a href="#kelas-section"
                 class="inline-block bg-indigo-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:bg-indigo-700 hover:-translate-y-1 transition-all duration-300">
                 Mulai Belajar Sekarang
             </a>
@@ -135,7 +212,7 @@
     <!-- Main Content Area -->
     <main class="bg-gradient-to-b from-[#a3e635] via-[#ecfccb] to-white pb-24 pt-8 flex-grow">
 
-        <!-- SECTION: 4 KARTU MENU UTAMA -->
+        <!-- SECTION: 4 KARTU MENU UTAMA (Etalase saja, tanpa tombol aksi) -->
         <section class="container mx-auto px-6 mb-24">
             <div class="text-center max-w-3xl mx-auto mb-16">
                 <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">Pilih Kebutuhan Belajarmu</h2>
@@ -144,10 +221,10 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Card 1: Untuk Anak -->
+                <!-- Card 1: [DIUBAH] Judul & subjudul, tombol dihapus -->
                 <div
                     class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
-                    <div class="p-6 flex-grow">
+                    <div class="p-6">
                         <div class="w-24 h-24 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
                             <svg class="w-16 h-16 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path
@@ -155,32 +232,15 @@
                                 </path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Untuk Anak</h3>
-                        <p class="text-slate-600 text-sm text-center mb-4">Materi & games seru khusus kelas 1 sampai 6
-                            SD.</p>
-                        <div class="flex flex-wrap justify-center gap-1.5 mb-6">
-                            <span
-                                class="text-[0.65rem] font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full">Materi</span>
-                            <span
-                                class="text-[0.65rem] font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full">Quiz</span>
-                            <span
-                                class="text-[0.65rem] font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full">Games</span>
-                            <span
-                                class="text-[0.65rem] font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full">Otak
-                                Hebat</span>
-                        </div>
-                    </div>
-                    <div class="p-6 pt-0 mt-auto">
-                        <a href="#materi-admin"
-                            class="block w-full py-2.5 px-4 bg-green-500 hover:bg-green-600 text-white font-bold text-sm text-center rounded-full transition-colors shadow-sm">Masuk
-                            ke Untuk Anak &rarr;</a>
+                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Materi & Pembahasan</h3>
+                        <p class="text-slate-600 text-sm text-center">Materi, Quiz, Games, Otak Hebat</p>
                     </div>
                 </div>
 
-                <!-- Card 2: Uji Mandiri -->
+                <!-- Card 2: [DIUBAH] Judul & subjudul disederhanakan, tombol dihapus -->
                 <div
                     class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
-                    <div class="p-6 flex-grow">
+                    <div class="p-6">
                         <div class="w-24 h-24 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
                             <svg class="w-16 h-16 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path
@@ -189,29 +249,14 @@
                             </svg>
                         </div>
                         <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Uji Mandiri</h3>
-                        <p class="text-slate-600 text-sm text-center mb-4">Latihan dan simulasi ujian persiapan jenjang
-                            lanjut.</p>
-                        <div class="flex flex-wrap justify-center gap-1.5 mb-6">
-                            <span
-                                class="text-[0.65rem] font-bold bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">Latihan
-                                Soal</span>
-                            <span
-                                class="text-[0.65rem] font-bold bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">Simulasi</span>
-                            <span
-                                class="text-[0.65rem] font-bold bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">Pembahasan</span>
-                        </div>
-                    </div>
-                    <div class="p-6 pt-0 mt-auto">
-                        <a href="#materi-admin"
-                            class="block w-full py-2.5 px-4 bg-purple-500 hover:bg-purple-600 text-white font-bold text-sm text-center rounded-full transition-colors shadow-sm">Masuk
-                            ke Uji Mandiri &rarr;</a>
+                        <p class="text-slate-600 text-sm text-center">Latihan Soal</p>
                     </div>
                 </div>
 
-                <!-- Card 3: Otak Hebat -->
+                <!-- Card 3: [DIUBAH] Judul & subjudul (khusus matematika), tombol dihapus -->
                 <div
                     class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
-                    <div class="p-6 flex-grow">
+                    <div class="p-6">
                         <div class="w-24 h-24 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
                             <svg class="w-16 h-16 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path
@@ -220,28 +265,15 @@
                             </svg>
                         </div>
                         <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Otak Hebat</h3>
-                        <p class="text-slate-600 text-sm text-center mb-4">Tantangan seru melatih logika, memori, dan
-                            daya pikir.</p>
-                        <div class="flex flex-wrap justify-center gap-1.5 mb-6">
-                            <span
-                                class="text-[0.65rem] font-bold bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Numerik</span>
-                            <span
-                                class="text-[0.65rem] font-bold bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Logika</span>
-                            <span
-                                class="text-[0.65rem] font-bold bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Memori</span>
-                        </div>
-                    </div>
-                    <div class="p-6 pt-0 mt-auto">
-                        <a href="#materi-admin"
-                            class="block w-full py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm text-center rounded-full transition-colors shadow-sm">Masuk
-                            ke Otak Hebat &rarr;</a>
+                        <p class="text-slate-600 text-sm text-center">Numerik, Logika, Memori, Spasial</p>
+                        <p class="text-[0.65rem] text-orange-500 font-bold text-center mt-1">(Khusus Matematika)</p>
                     </div>
                 </div>
 
-                <!-- Card 4: Proyek & Program -->
+                <!-- Card 4: [DIUBAH] Judul, tombol dihapus, jadi etalase link kolaborasi -->
                 <div
                     class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
-                    <div class="p-6 flex-grow">
+                    <div class="p-6">
                         <div class="w-24 h-24 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
                             <svg class="w-16 h-16 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -250,62 +282,61 @@
                             </svg>
                         </div>
                         <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Proyek & Program</h3>
-                        <p class="text-slate-600 text-sm text-center mb-4">Berbagai proyek, kolaborasi, dan program
-                            edukasi KIBSA.</p>
-                        <div class="flex flex-wrap justify-center gap-1.5 mb-6">
-                            <span
-                                class="text-[0.65rem] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Project</span>
-                            <span
-                                class="text-[0.65rem] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Program</span>
-                            <span
-                                class="text-[0.65rem] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Kolaborasi</span>
-                        </div>
-                    </div>
-                    <div class="p-6 pt-0 mt-auto">
-                        <a href="#info-event"
-                            class="block w-full py-2.5 px-4 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm text-center rounded-full transition-colors shadow-sm">Lihat
-                            Semua Proyek &rarr;</a>
+                        <p class="text-slate-600 text-sm text-center">Etalase kolaborasi bimbel & instansi mitra KIBSA
+                        </p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION: MATERI FIREBASE (ADMIN & KUIS) -->
-        <section id="materi-admin" class="container mx-auto px-6 max-w-6xl mb-24">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b-2 border-green-500/30 pb-4">
-                <div>
-                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 flex items-center gap-3">
-                        <span>📚</span> Materi Belajar Interaktif
-                    </h2>
-                    <p class="text-slate-600 font-medium mt-2">Bahan ajar tematik Kelas 1–6 SD dengan kuis & otak hebat.
-                    </p>
-                </div>
-                <button id="add-material-btn"
-                    class="hidden mt-4 md:mt-0 bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition">
-                    + Tambah Materi
-                </button>
+        <!-- ====== [BARU] POIN 3: 6 KOTAK KELAS (PINTU MASUK UTAMA) ====== -->
+        <section id="kelas-section" class="container mx-auto px-6 max-w-6xl mb-24">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">📚 Pilih Kelasmu</h2>
+                <p class="text-slate-700 text-lg font-medium">Klik kotak kelasmu, lalu pilih mata pelajaran yang ingin
+                    kamu pelajari hari ini.</p>
             </div>
-            <!-- WADAH MATERI FIREBASE -->
-            <div id="material-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div id="kelas-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <!-- 6 kotak kelas dirender otomatis oleh JS (renderKelasBoxes) -->
+            </div>
         </section>
 
-        <!-- SECTION: INFO/EVENT FIREBASE -->
+        <!-- ====== [BARU] POIN 4: SLIDER POSTER AUTO-PLAY (di bawah 6 kotak kelas) ====== -->
+        <section class="container mx-auto px-6 max-w-6xl mb-24">
+            <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
+                <span>🖼️</span> Sorotan KIBSA
+            </h2>
+            <div id="poster-carousel"
+                class="relative w-full rounded-2xl overflow-hidden shadow-lg bg-slate-200 h-56 md:h-80">
+                <div id="poster-carousel-track" class="flex h-full"></div>
+                <!-- Dots indikator slide -->
+                <div id="carousel-dots" class="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10"></div>
+            </div>
+        </section>
+
+        <!-- SECTION: INFO/EVENT FIREBASE (terpisah, di bawah carousel) -->
         <section id="info-event" class="container mx-auto px-6 max-w-6xl">
             <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b-2 border-indigo-500/30 pb-4">
                 <div>
                     <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 flex items-center gap-3">
-                        <span>📋</span> Galeri Poster & Info/Event
+                        <span>📋</span> Info & Event
                     </h2>
-                    <p class="text-slate-600 font-medium mt-2">Informasi dan perlombaan terbaru dari KIBSA.</p>
+                    <p class="text-slate-600 font-medium mt-2">Pengumuman, lomba, dan webinar terbaru dari KIBSA.</p>
                 </div>
                 <button id="add-poster-btn"
                     class="hidden mt-4 md:mt-0 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition">
-                    + Tambah Poster
+                    + Tambah Event
                 </button>
             </div>
-            <!-- WADAH POSTER FIREBASE -->
+            <!-- WADAH EVENT FIREBASE -->
             <div id="poster-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
         </section>
+
+        <!-- Grid materi mentah (dipertahankan tersembunyi sebagai sumber data, dipakai kelas-modal) -->
+        <div id="material-grid" class="hidden"></div>
+        <button id="add-material-btn"
+            class="hidden fixed bottom-20 right-4 z-40 bg-green-500 text-white font-bold py-2.5 px-6 rounded-full shadow-lg">+
+            Tambah Materi</button>
 
     </main>
 
@@ -401,27 +432,63 @@
         </div>
     </div>
 
-    <!-- Modal Admin Poster -->
+    <!-- ====== [BARU] POIN 3: Modal Pemilihan Mapel (muncul setelah klik "Masuk Kelas") ====== -->
+    <div id="mapel-modal"
+        class="hidden fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
+            <button onclick="closeMapelModal()"
+                class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
+            <h2 id="mapel-modal-title" class="text-2xl font-extrabold text-slate-800 mb-1">Kelas 1 SD</h2>
+            <p class="text-slate-500 mb-6">Pilih mata pelajaran yang ingin kamu pelajari.</p>
+            <div id="mapel-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </div>
+    </div>
+
+    <!-- ====== [BARU] POIN 3: Modal Level Berantai (Materi -> Latihan -> Otak Hebat) ====== -->
+    <div id="level-modal"
+        class="hidden fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
+            <button onclick="closeLevelModal()"
+                class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
+            <h2 id="level-modal-title" class="text-2xl font-extrabold text-slate-800 mb-1">Matematika</h2>
+            <p id="level-modal-sub" class="text-slate-500 mb-6 text-sm"></p>
+            <div id="level-list" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- Modal Admin Event (Poster) [DIUBAH] POIN 4: form diringkas jadi 5 input -->
     <div id="admin-poster-modal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-xl w-full max-w-lg p-6 shadow-2xl">
-            <h2 id="poster-modal-title" class="text-xl font-bold mb-4">Tambah Poster</h2>
+            <h2 id="poster-modal-title" class="text-xl font-bold mb-4">Tambah Event / Pengumuman</h2>
             <form id="poster-form" class="space-y-4">
-                <div><label class="block text-sm font-bold mb-1">Judul Poster/Event</label><input type="text"
+                <!-- 1. Judul -->
+                <div><label class="block text-sm font-bold mb-1">1. Judul Event/Pengumuman</label><input type="text"
                         id="poster-title" class="w-full border rounded p-2" required></div>
+                <!-- 2. Kategori (dropdown) -->
                 <div>
-                    <label class="block text-sm font-bold mb-1">Kategori</label>
+                    <label class="block text-sm font-bold mb-1">2. Kategori</label>
                     <select id="poster-category" class="w-full border rounded p-2">
                         <option>Lomba</option>
                         <option>Info Akademik</option>
+                        <option>Webinar</option>
                         <option>Pengumuman</option>
                     </select>
                 </div>
-                <div><label class="block text-sm font-bold mb-1">URL Gambar (Link)</label><input type="url"
-                        id="poster-image-url" class="w-full border rounded p-2" required></div>
-                <div><label class="block text-sm font-bold mb-1">Link Pendaftaran (Opsional)</label><input type="url"
+                <!-- 3. URL Gambar Banner -->
+                <div>
+                    <label class="block text-sm font-bold mb-1">3. URL Gambar Banner</label>
+                    <input type="url" id="poster-image-url" class="w-full border rounded p-2"
+                        placeholder="Tempel link Google Drive / gambar biasa" required>
+                    <p class="text-[0.7rem] text-slate-400 mt-1">Link Google Drive otomatis dikonversi jadi link gambar
+                        langsung.</p>
+                </div>
+                <!-- 4. URL Link Pendaftaran -->
+                <div><label class="block text-sm font-bold mb-1">4. URL Link Pendaftaran</label><input type="url"
                         id="poster-link" class="w-full border rounded p-2"></div>
-                <div><label class="block text-sm font-bold mb-1">Tanggal</label><input type="date" id="poster-date"
-                        class="w-full border rounded p-2" required></div>
+                <!-- 5. Tanggal Pelaksanaan -->
+                <div><label class="block text-sm font-bold mb-1">5. Tanggal Pelaksanaan</label><input type="date"
+                        id="poster-date" class="w-full border rounded p-2" required></div>
+                <!-- Deskripsi dipertahankan agar kartu tetap informatif -->
                 <div><label class="block text-sm font-bold mb-1">Deskripsi Singkat</label><textarea
                         id="poster-description" class="w-full border rounded p-2" rows="3" required></textarea></div>
                 <div class="flex justify-end gap-2 pt-4">
@@ -434,7 +501,7 @@
         </div>
     </div>
 
-    <!-- Modal Admin Materi -->
+    <!-- Modal Admin Materi (dipertahankan, dipakai sistem level di belakang layar) -->
     <div id="admin-material-modal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
             <h2 id="material-modal-title" class="text-xl font-bold mb-4">Tambah Materi Baru</h2>
@@ -451,8 +518,16 @@
                             <option>Kelas 6 SD</option>
                         </select>
                     </div>
-                    <div><label class="block text-sm font-bold mb-1">Mata Pelajaran</label><input type="text"
-                            id="mat-matpel" class="w-full border rounded p-2" required></div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Mata Pelajaran</label>
+                        <select id="mat-matpel" class="w-full border rounded p-2">
+                            <option>Bahasa Indonesia</option>
+                            <option>Matematika</option>
+                            <option>IPAS</option>
+                            <option>Bahasa Inggris</option>
+                            <option>Pendidikan Pancasila</option>
+                        </select>
+                    </div>
                 </div>
                 <div><label class="block text-sm font-bold mb-1">Judul Topik</label><input type="text" id="mat-judul"
                         class="w-full border rounded p-2" required></div>
@@ -466,13 +541,16 @@
                 </div>
                 <div><label class="block text-sm font-bold mb-1">Tujuan Belajar</label><textarea id="mat-tujuan"
                         class="w-full border rounded p-2" rows="2" required></textarea></div>
-                <div><label class="block text-sm font-bold mb-1">Data Konten Slide (JSON Array)</label><textarea
-                        id="mat-konten" class="w-full border rounded p-2 font-mono text-xs" rows="4">[]</textarea></div>
-                <div><label class="block text-sm font-bold mb-1">Data Latihan Soal (JSON Array)</label><textarea
-                        id="mat-latihan" class="w-full border rounded p-2 font-mono text-xs" rows="4">[]</textarea>
+                <div><label class="block text-sm font-bold mb-1">Data Konten Slide / Level 1 - Materi (JSON
+                        Array)</label><textarea id="mat-konten" class="w-full border rounded p-2 font-mono text-xs"
+                        rows="4">[]</textarea></div>
+                <div><label class="block text-sm font-bold mb-1">Data Latihan Soal / Level 2 (JSON
+                        Array)</label><textarea id="mat-latihan" class="w-full border rounded p-2 font-mono text-xs"
+                        rows="4">[]</textarea>
                 </div>
-                <div><label class="block text-sm font-bold mb-1">Otak Hebat (Tantangan Akhir)</label><textarea
-                        id="mat-otakhebat" class="w-full border rounded p-2" rows="2"></textarea></div>
+                <div><label class="block text-sm font-bold mb-1">Otak Hebat / Level 3 (Tantangan Akhir)</label><textarea
+                        id="mat-otakhebat" class="w-full border rounded p-2" rows="2"
+                        placeholder="Contoh: Menyusun Paragraf, Detektif Kata, & TTS Teks"></textarea></div>
                 <div><label class="block text-sm font-bold mb-1">Link Download PPTX Panduan Guru</label><input
                         type="url" id="mat-download" class="w-full border rounded p-2"></div>
                 <div class="flex justify-end gap-2 pt-4">
@@ -535,6 +613,17 @@
     <script>
         function openTentangModal() { document.getElementById('tentangModal').classList.remove('hidden'); }
         function closeTentangModal() { document.getElementById('tentangModal').classList.add('hidden'); }
+
+        // [BARU] POIN 1: set nav aktif berdasarkan klik / scroll sederhana
+        document.addEventListener('DOMContentLoaded', () => {
+            const pills = document.querySelectorAll('.nav-pill');
+            pills.forEach(p => {
+                p.addEventListener('click', () => {
+                    pills.forEach(x => x.classList.remove('nav-pill-active'));
+                    p.classList.add('nav-pill-active');
+                });
+            });
+        });
     </script>
     <script type="module" src="./app.js"></script>
     <!-- Bottom Navigation (Khusus Tampilan HP/Mobile) -->
@@ -560,8 +649,9 @@
             <span class="text-[10px] font-semibold mt-0.5">Tentang</span>
         </button>
 
-        <!-- Tombol Materi: Scroll ke bagian materi -->
-        <a href="#materi-admin" onclick="document.getElementById('materi-admin')?.scrollIntoView({behavior: 'smooth'});"
+        <!-- Tombol Materi: Scroll ke bagian 6 kotak kelas -->
+        <a href="#kelas-section"
+            onclick="document.getElementById('kelas-section')?.scrollIntoView({behavior: 'smooth'});"
             class="flex flex-col items-center text-slate-600 hover:text-indigo-600">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -572,7 +662,7 @@
         </a>
 
         <!-- Tombol Event -->
-        <a href="#event" onclick="document.getElementById('event')?.scrollIntoView({behavior: 'smooth'});"
+        <a href="#info-event" onclick="document.getElementById('info-event')?.scrollIntoView({behavior: 'smooth'});"
             class="flex flex-col items-center text-slate-600 hover:text-indigo-600">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
