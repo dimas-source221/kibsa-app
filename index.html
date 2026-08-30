@@ -111,6 +111,46 @@
             width: 22px;
             background: #ffffff;
         }
+
+        /* [DIUBAH] Slide carousel: gambar poster ditampilkan penuh (contain) dengan
+           latar blur dari gambar itu sendiri sebagai "letterbox" agar tidak ada
+           area kosong polos di kiri-kanan/atas-bawah */
+        .carousel-slide {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            flex-shrink: 0;
+            background: #1e293b;
+            overflow: hidden;
+        }
+
+        .carousel-slide-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(18px) brightness(0.6);
+            transform: scale(1.15);
+        }
+
+        .carousel-slide-img {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* ====== [BARU] POIN 4 (round 2): SEKSI PORTAL TERKAIT ====== */
+        .portal-card {
+            transition: all 0.25s ease;
+        }
+
+        .portal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px -6px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 
@@ -306,8 +346,9 @@
             <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
                 <span>🖼️</span> Sorotan KIBSA
             </h2>
+            <!-- [DIUBAH] POIN 1: tinggi container diperbesar agar poster tidak terpotong -->
             <div id="poster-carousel"
-                class="relative w-full rounded-2xl overflow-hidden shadow-lg bg-slate-200 h-56 md:h-80">
+                class="relative w-full rounded-2xl overflow-hidden shadow-lg bg-slate-800 h-72 md:h-[28rem]">
                 <div id="poster-carousel-track" class="flex h-full"></div>
                 <!-- Dots indikator slide -->
                 <div id="carousel-dots" class="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10"></div>
@@ -330,6 +371,24 @@
             </div>
             <!-- WADAH EVENT FIREBASE -->
             <div id="poster-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </section>
+
+        <!-- ====== [BARU] POIN 4: SEKSI PORTAL TERKAIT (di bawah Info & Event) ====== -->
+        <section id="portal-terkait" class="container mx-auto px-6 max-w-6xl mt-24">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b-2 border-teal-500/30 pb-4">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 flex items-center gap-3">
+                        <span>🔗</span> Portal Terkait
+                    </h2>
+                    <p class="text-slate-600 font-medium mt-2">Rekomendasi portal belajar mitra KIBSA.</p>
+                </div>
+                <button id="add-portal-btn"
+                    class="hidden mt-4 md:mt-0 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition">
+                    + Tambah Portal
+                </button>
+            </div>
+            <!-- WADAH PORTAL FIREBASE -->
+            <div id="portal-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
         </section>
 
         <!-- Grid materi mentah (dipertahankan tersembunyi sebagai sumber data, dipakai kelas-modal) -->
@@ -468,6 +527,8 @@
                 <div>
                     <label class="block text-sm font-bold mb-1">2. Kategori</label>
                     <select id="poster-category" class="w-full border rounded p-2">
+                        <!-- [BARU] POIN 3: opsi default agar tidak dipaksa memilih kategori -->
+                        <option value="Tanpa Kategori" selected>Tanpa Kategori</option>
                         <option>Lomba</option>
                         <option>Info Akademik</option>
                         <option>Webinar</option>
@@ -496,6 +557,25 @@
                         class="px-4 py-2 bg-gray-200 rounded font-bold">Batal</button>
                     <button type="submit" id="poster-submit-btn"
                         class="px-4 py-2 bg-blue-600 text-white rounded font-bold">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== [BARU] POIN 4: Modal Admin Portal Terkait ====== -->
+    <div id="admin-portal-modal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md p-6 shadow-2xl">
+            <h2 id="portal-modal-title" class="text-xl font-bold mb-4">Tambah Portal Terkait</h2>
+            <form id="portal-form" class="space-y-4">
+                <div><label class="block text-sm font-bold mb-1">Nama Portal</label><input type="text" id="portal-nama"
+                        class="w-full border rounded p-2" placeholder="Contoh: Ruang Guru" required></div>
+                <div><label class="block text-sm font-bold mb-1">Link URL Portal</label><input type="url"
+                        id="portal-url" class="w-full border rounded p-2" placeholder="https://..." required></div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" id="portal-cancel-btn"
+                        class="px-4 py-2 bg-gray-200 rounded font-bold">Batal</button>
+                    <button type="submit" id="portal-submit-btn"
+                        class="px-4 py-2 bg-teal-600 text-white rounded font-bold">Simpan</button>
                 </div>
             </form>
         </div>

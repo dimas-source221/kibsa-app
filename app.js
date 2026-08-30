@@ -26,6 +26,8 @@ let editingPosterId = null;
 let editingMaterialId = null;
 let postersData = {};
 let materialsData = {};
+let portalsData = {}; // [BARU] POIN 4: data Portal Terkait
+let editingPortalId = null;
 let currentSlideIndex = 0;
 let currentMaterial = null;
 let currentLevelSection = null; // [BARU] 'materi' | 'latihan' | 'otakhebat' — bagian level yang sedang dibuka
@@ -94,6 +96,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const posterModalTitle = document.getElementById('poster-modal-title');
     const posterSubmitBtn = document.getElementById('poster-submit-btn');
     const posterImageUrlInput = document.getElementById('poster-image-url');
+
+    // [BARU] POIN 4: Portal Terkait UI
+    const addPortalBtn = document.getElementById('add-portal-btn');
+    const portalModal = document.getElementById('admin-portal-modal');
+    const portalForm = document.getElementById('portal-form');
+    const portalCancelBtn = document.getElementById('portal-cancel-btn');
+    const portalGrid = document.getElementById('portal-grid');
+    const portalModalTitle = document.getElementById('portal-modal-title');
+    const portalSubmitBtn = document.getElementById('portal-submit-btn');
 
     // Material UI
     const addMaterialBtn = document.getElementById('add-material-btn');
@@ -165,6 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             if (addPosterBtn) addPosterBtn.classList.remove('hidden');
             if (addMaterialBtn) addMaterialBtn.classList.remove('hidden');
+            if (addPortalBtn) addPortalBtn.classList.remove('hidden');
         } else {
             isAdmin = false;
             if (loginBtn) loginBtn.classList.remove('hidden');
@@ -172,9 +184,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (adminBadge) adminBadge.classList.add('hidden');
             if (addPosterBtn) addPosterBtn.classList.add('hidden');
             if (addMaterialBtn) addMaterialBtn.classList.add('hidden');
+            if (addPortalBtn) addPortalBtn.classList.add('hidden');
         }
         renderPosters();
         renderMaterials();
+        renderPortals(); // [BARU] POIN 4
         renderCarousel(); // [BARU] POIN 4
     });
 
@@ -389,11 +403,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         posters.forEach((p, i) => {
+            // [DIUBAH] POIN 1: gambar ditampilkan penuh (object-fit: contain) di atas
+            // latar blur dari gambar yang sama, supaya tidak ada crop tajam maupun
+            // area kosong polos di sisi gambar yang rasio-nya beda dari container.
             const slide = document.createElement('div');
-            slide.className = 'w-full h-full flex-shrink-0 relative';
+            slide.className = 'carousel-slide';
             slide.innerHTML = `
-                <img src="${p.imageUrl}" alt="${p.title}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/800x400/e2e8f0/94a3b8?text=Poster'">
-                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <img src="${p.imageUrl}" alt="" aria-hidden="true" class="carousel-slide-bg" onerror="this.style.display='none'">
+                <img src="${p.imageUrl}" alt="${p.title}" class="carousel-slide-img" onerror="this.src='https://placehold.co/800x400/e2e8f0/94a3b8?text=Poster'">
+                <div class="absolute bottom-0 left-0 right-0 z-[2] bg-gradient-to-t from-black/70 to-transparent p-4">
                     <p class="text-white font-bold text-sm md:text-lg">${p.title}</p>
                 </div>
             `;
@@ -708,6 +726,13 @@ document.addEventListener("DOMContentLoaded", () => {
         renderMaterials();
     });
 
+    // [BARU] POIN 4: listener realtime untuk koleksi "portals"
+    onSnapshot(collection(db, "portals"), (snapshot) => {
+        portalsData = {};
+        snapshot.forEach(d => { portalsData[d.id] = { id: d.id, ...d.data() }; });
+        renderPortals();
+    });
+
     // ======================================
     // RENDER POSTERS (Kartu Info & Event)
     // ======================================
@@ -733,16 +758,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const regBtn = poster.registrationLink
                 ? `<a href="${poster.registrationLink}" target="_blank" class="mt-3 block w-full py-2 bg-green-500 hover:bg-green-600 text-white font-bold text-sm text-center rounded-full transition shadow-sm">Daftar Sekarang →</a>` : '';
 
+            // [DIUBAH] POIN 2: tinggi area gambar diperbesar (h-48 -> h-64) + object-contain
+            // dengan latar netral, agar poster Portrait (1024x1536) atau Landscape (1536x1024)
+            // sama-sama tampil proporsional tanpa terpotong parah. Judul & tanggal diperkecil.
             card.innerHTML = `
-                <div class="relative w-full h-48 bg-slate-200">
-                    <img src="${poster.imageUrl}" alt="${poster.title}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x200/e2e8f0/94a3b8?text=Poster'">
+                <div class="relative w-full h-64 bg-slate-100 flex items-center justify-center overflow-hidden">
+                    <img src="${poster.imageUrl}" alt="${poster.title}" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/400x200/e2e8f0/94a3b8?text=Poster'">
                     ${adminActions}
                 </div>
                 <div class="p-5 flex flex-col flex-grow">
                     <span class="text-[0.65rem] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full self-start mb-3">${poster.category}</span>
-                    <h3 class="text-lg font-bold text-slate-800 mb-2">${poster.title}</h3>
+                    <h3 class="text-base font-bold text-slate-800 mb-2 leading-snug">${poster.title}</h3>
                     <p class="text-slate-600 text-sm flex-grow line-clamp-3">${poster.description}</p>
-                    <p class="text-slate-400 text-xs font-semibold mt-3">📅 ${poster.date}</p>
+                    <p class="text-slate-400 text-[0.7rem] font-semibold mt-3">📅 ${poster.date}</p>
                     ${regBtn}
                 </div>`;
             posterGrid.appendChild(card);
@@ -788,6 +816,87 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll('.edit-mat-btn').forEach(btn => btn.addEventListener('click', e => editMaterial(e.currentTarget.dataset.id)));
             document.querySelectorAll('.delete-mat-btn').forEach(btn => btn.addEventListener('click', e => deleteMaterial(e.currentTarget.dataset.id)));
         }
+    }
+
+    // ======================================
+    // [BARU] POIN 4: RENDER & CRUD PORTAL TERKAIT
+    // ======================================
+    function renderPortals() {
+        if (!portalGrid) return;
+        portalGrid.innerHTML = '';
+        const portals = Object.values(portalsData);
+        if (portals.length === 0) {
+            portalGrid.innerHTML = '<p class="text-slate-400 col-span-full text-center py-6">Belum ada portal terkait.</p>';
+            return;
+        }
+        portals.forEach(portal => {
+            const wrap = document.createElement('div');
+            wrap.className = 'relative';
+
+            const deleteBtn = isAdmin
+                ? `<button data-id="${portal.id}" class="delete-portal-btn absolute -top-2 -right-2 z-10 bg-red-500 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition text-xs">🗑️</button>`
+                : '';
+
+            wrap.innerHTML = `
+                ${deleteBtn}
+                <a href="${portal.url}" target="_blank" rel="noopener noreferrer"
+                    class="portal-card flex flex-col items-center justify-center text-center gap-2 bg-white border-2 border-teal-100 hover:border-teal-400 rounded-2xl shadow-sm p-5 h-full">
+                    <span class="text-3xl">🔗</span>
+                    <span class="font-bold text-slate-700 text-sm">${portal.nama}</span>
+                </a>
+            `;
+            portalGrid.appendChild(wrap);
+        });
+
+        if (isAdmin) {
+            document.querySelectorAll('.delete-portal-btn').forEach(btn =>
+                btn.addEventListener('click', e => deletePortal(e.currentTarget.dataset.id)));
+        }
+    }
+
+    window.deletePortal = async function (id) {
+        if (!confirm('Hapus portal ini dari daftar?')) return;
+        try { await deleteDoc(doc(db, "portals", id)); }
+        catch (e) { alert('Gagal menghapus: ' + e.message); }
+    };
+
+    if (addPortalBtn) {
+        addPortalBtn.addEventListener('click', () => {
+            editingPortalId = null;
+            if (portalForm) portalForm.reset();
+            if (portalModalTitle) portalModalTitle.innerText = 'Tambah Portal Terkait';
+            if (portalModal) portalModal.classList.remove('hidden');
+        });
+    }
+
+    if (portalCancelBtn) {
+        portalCancelBtn.addEventListener('click', () => portalModal.classList.add('hidden'));
+    }
+
+    if (portalForm) {
+        portalForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (portalSubmitBtn) {
+                portalSubmitBtn.disabled = true;
+                portalSubmitBtn.innerText = 'Menyimpan...';
+            }
+            try {
+                const data = {
+                    nama: document.getElementById('portal-nama') ? document.getElementById('portal-nama').value : '',
+                    url: document.getElementById('portal-url') ? document.getElementById('portal-url').value : '',
+                };
+                await addDoc(collection(db, "portals"), data);
+                if (portalModal) portalModal.classList.add('hidden');
+                portalForm.reset();
+                editingPortalId = null;
+            } catch (e) { alert('Error: ' + e.message); }
+            finally {
+                if (portalSubmitBtn) {
+                    portalSubmitBtn.disabled = false;
+                    portalSubmitBtn.innerText = 'Simpan';
+                }
+            }
+        });
     }
 
     // ======================================
@@ -920,4 +1029,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // [BARU] POIN 3: render kotak kelas begitu halaman siap (sebelum data Firebase datang pun kotak tetap tampil)
     renderKelasBoxes();
+    renderPortals(); // [BARU] POIN 4: hindari grid kosong sebelum listener Firestore aktif
 });
