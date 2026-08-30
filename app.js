@@ -142,9 +142,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const levelModalSub = document.getElementById('level-modal-sub');
     const levelList = document.getElementById('level-list');
 
-    // [BARU] POIN 4: Carousel UI
+    // [BARU] POIN 2: Carousel UI (caption terpisah, bukan overlay)
     const carouselTrack = document.getElementById('poster-carousel-track');
     const carouselDots = document.getElementById('carousel-dots');
+    const carouselCaption = document.getElementById('carousel-caption');
+
+    // [BARU] POIN 1: Modal Detail Event/Poster
+    const posterDetailModal = document.getElementById('poster-detail-modal');
 
     // ======================================
     // AUTH STATE LISTENER
@@ -399,21 +403,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (posters.length === 0) {
             carouselTrack.innerHTML = '<div class="w-full h-full flex items-center justify-center text-slate-400 font-semibold">Belum ada poster untuk ditampilkan.</div>';
+            if (carouselCaption) carouselCaption.innerText = '';
             return;
         }
 
         posters.forEach((p, i) => {
-            // [DIUBAH] POIN 1: gambar ditampilkan penuh (object-fit: contain) di atas
-            // latar blur dari gambar yang sama, supaya tidak ada crop tajam maupun
-            // area kosong polos di sisi gambar yang rasio-nya beda dari container.
+            // [DIUBAH] POIN 2: gambar ditampilkan penuh (object-fit: contain) di atas
+            // latar blur dari gambar yang sama; TIDAK ADA lagi teks overlay di atas
+            // gambar — judul dipindah ke caption terpisah (#carousel-caption) di bawah.
             const slide = document.createElement('div');
             slide.className = 'carousel-slide';
             slide.innerHTML = `
                 <img src="${p.imageUrl}" alt="" aria-hidden="true" class="carousel-slide-bg" onerror="this.style.display='none'">
                 <img src="${p.imageUrl}" alt="${p.title}" class="carousel-slide-img" onerror="this.src='https://placehold.co/800x400/e2e8f0/94a3b8?text=Poster'">
-                <div class="absolute bottom-0 left-0 right-0 z-[2] bg-gradient-to-t from-black/70 to-transparent p-4">
-                    <p class="text-white font-bold text-sm md:text-lg">${p.title}</p>
-                </div>
             `;
             carouselTrack.appendChild(slide);
 
@@ -426,29 +428,33 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         carouselIndex = 0;
-        updateCarouselPosition();
+        updateCarouselPosition(posters);
 
         // Auto-play berkala setiap 4 detik
         if (posters.length > 1) {
             carouselTimer = setInterval(() => {
                 carouselIndex = (carouselIndex + 1) % posters.length;
-                updateCarouselPosition();
+                updateCarouselPosition(posters);
             }, 4000);
         }
     }
 
     function goToSlide(i) {
         carouselIndex = i;
-        updateCarouselPosition();
+        updateCarouselPosition(Object.values(postersData));
     }
 
-    function updateCarouselPosition() {
+    function updateCarouselPosition(posters) {
         if (!carouselTrack) return;
         carouselTrack.style.transform = `translateX(-${carouselIndex * 100}%)`;
         if (carouselDots) {
             Array.from(carouselDots.children).forEach((d, i) => {
                 d.classList.toggle('active', i === carouselIndex);
             });
+        }
+        // [BARU] POIN 2: caption judul mengikuti slide yang sedang aktif, ditempatkan di luar gambar
+        if (carouselCaption && posters && posters[carouselIndex]) {
+            carouselCaption.innerText = posters[carouselIndex].title || '';
         }
     }
 
@@ -734,6 +740,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ======================================
+    // [BARU] POIN 1: MODAL DETAIL EVENT/POSTER
+    // ======================================
+    window.openPosterDetail = function (id) {
+        const poster = postersData[id];
+        if (!poster || !posterDetailModal) return;
+
+        const imgEl = document.getElementById('poster-detail-img');
+        const catEl = document.getElementById('poster-detail-category');
+        const titleEl = document.getElementById('poster-detail-title');
+        const dateEl = document.getElementById('poster-detail-date');
+        const descEl = document.getElementById('poster-detail-description');
+        const linkEl = document.getElementById('poster-detail-link');
+
+        if (imgEl) imgEl.src = poster.imageUrl || '';
+        if (catEl) {
+            // Badge kategori dipindah ke sini (tidak lagi tampil di kartu)
+            catEl.innerText = poster.category || 'Tanpa Kategori';
+        }
+        if (titleEl) titleEl.innerText = poster.title || '';
+        if (dateEl) dateEl.innerText = '📅 ' + (poster.date || '');
+        if (descEl) descEl.innerText = poster.description || '';
+        if (linkEl) {
+            if (poster.registrationLink) {
+                linkEl.href = poster.registrationLink;
+                linkEl.classList.remove('hidden');
+            } else {
+                linkEl.classList.add('hidden');
+            }
+        }
+
+        posterDetailModal.classList.remove('hidden');
+    };
+    window.closePosterDetail = function () {
+        if (posterDetailModal) posterDetailModal.classList.add('hidden');
+    };
+
+    // ======================================
     // RENDER POSTERS (Kartu Info & Event)
     // ======================================
     function renderPosters() {
@@ -755,26 +798,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button data-id="${poster.id}" class="delete-poster-btn bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition">🗑️</button>
                 </div>` : '';
 
-            const regBtn = poster.registrationLink
-                ? `<a href="${poster.registrationLink}" target="_blank" class="mt-3 block w-full py-2 bg-green-500 hover:bg-green-600 text-white font-bold text-sm text-center rounded-full transition shadow-sm">Daftar Sekarang →</a>` : '';
-
-            // [DIUBAH] POIN 2: tinggi area gambar diperbesar (h-48 -> h-64) + object-contain
-            // dengan latar netral, agar poster Portrait (1024x1536) atau Landscape (1536x1024)
-            // sama-sama tampil proporsional tanpa terpotong parah. Judul & tanggal diperkecil.
+            // Catatan: tombol "Daftar Sekarang" (registrationLink) sekarang ditampilkan
+            // di dalam Modal Detail (lihat openPosterDetail), bukan langsung di kartu.
+            // [DIUBAH] POIN 1: kartu dirombak total —
+            // - Badge kategori & deskripsi DIHAPUS dari tampilan kartu (dipindah ke modal detail)
+            // - Area gambar dibuat memenuhi ~80% tinggi kartu (h-72 dari total kartu h-[22rem])
+            // - Footer hanya berisi Judul singkat, Tanggal, dan tombol "+ Lihat Detail"
+            card.className = 'bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl transition-all relative h-[22rem]';
             card.innerHTML = `
-                <div class="relative w-full h-64 bg-slate-100 flex items-center justify-center overflow-hidden">
-                    <img src="${poster.imageUrl}" alt="${poster.title}" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/400x200/e2e8f0/94a3b8?text=Poster'">
+                <div class="relative w-full h-72 bg-slate-100 flex-shrink-0 overflow-hidden">
+                    <img src="${poster.imageUrl}" alt="${poster.title}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x500/e2e8f0/94a3b8?text=Poster'">
                     ${adminActions}
                 </div>
-                <div class="p-5 flex flex-col flex-grow">
-                    <span class="text-[0.65rem] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full self-start mb-3">${poster.category}</span>
-                    <h3 class="text-base font-bold text-slate-800 mb-2 leading-snug">${poster.title}</h3>
-                    <p class="text-slate-600 text-sm flex-grow line-clamp-3">${poster.description}</p>
-                    <p class="text-slate-400 text-[0.7rem] font-semibold mt-3">📅 ${poster.date}</p>
-                    ${regBtn}
+                <div class="p-3 flex items-center justify-between gap-2 flex-grow min-h-0">
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-bold text-slate-800 truncate">${poster.title}</h3>
+                        <p class="text-slate-400 text-[0.65rem] font-semibold">📅 ${poster.date}</p>
+                    </div>
+                    <button data-id="${poster.id}" class="view-detail-btn flex-shrink-0 text-[0.7rem] font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition">+ Lihat Detail</button>
                 </div>`;
             posterGrid.appendChild(card);
         });
+
+        // [BARU] POIN 1: tombol "+ Lihat Detail" berlaku untuk semua pengunjung (bukan hanya admin)
+        document.querySelectorAll('.view-detail-btn').forEach(btn =>
+            btn.addEventListener('click', e => openPosterDetail(e.currentTarget.dataset.id)));
 
         if (isAdmin) {
             document.querySelectorAll('.edit-poster-btn').forEach(btn => btn.addEventListener('click', e => editPoster(e.currentTarget.dataset.id)));
