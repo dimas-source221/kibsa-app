@@ -1,93 +1,125 @@
-import { db, auth, googleProvider } from './firebase-config.js';
-import { collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { db, auth } from './firebase-config.js';
+import {
+    collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc,
+    getDocs, setDoc, query, orderBy, limit
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import {
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+// [DIUBAH] POIN 8A: Google Sign-In (signInWithPopup/googleProvider) DIHAPUS TOTAL.
+// Autentikasi sekarang murni Email/Password.
 
 // ======================================
 // KONSTANTA
 // ======================================
-const ADMIN_EMAIL = 'dimndot@gmail.com';
+// [DIUBAH] POIN 8E: admin ditentukan lewat email khusus ini, bukan lagi via akun Google pribadi
+const ADMIN_EMAIL = 'kibsaportalbelajar@gmail.com';
+const ADMIN_USERNAME = 'KIBSA';
 
-// [BARU] POIN 3: Daftar 6 kelas & 5 mapel tetap, dipakai untuk render kotak kelas & modal mapel
 const KELAS_LIST = ['Kelas 1 SD', 'Kelas 2 SD', 'Kelas 3 SD', 'Kelas 4 SD', 'Kelas 5 SD', 'Kelas 6 SD'];
+
+// [DIUBAH] POIN 2: IPAS dipisah jadi IPA & IPS tersendiri, tanpa Otak Hebat/Level
 const MAPEL_LIST = [
-    { nama: 'Bahasa Indonesia', icon: '📖', otakHebatInfo: 'Menyusun Paragraf, Detektif Kata, & Teka-Teki Silang Teks' },
-    { nama: 'Matematika', icon: '🔢', otakHebatInfo: 'Otak Hebat (Numerik, Logika, Memori, Spasial)' },
-    { nama: 'IPAS', icon: '🌱', otakHebatInfo: 'Simulasi Rantai Makanan, Tebak Ekosistem, & Puzzle Organ Tubuh/Peta' },
-    { nama: 'Bahasa Inggris', icon: '🔤', otakHebatInfo: 'Word Scramble, Listening/Flashcard Memory Game' },
-    { nama: 'Pendidikan Pancasila', icon: '🇮🇩', otakHebatInfo: 'Studi Kasus Moral/Keputusan Sikap & Peta Budaya Nusantara' },
+    { nama: 'Bahasa Indonesia', icon: '📖' },
+    { nama: 'IPA', icon: '🔬' },
+    { nama: 'IPS', icon: '🌍' },
+    { nama: 'Bahasa Inggris', icon: '🔤' },
+    { nama: 'Matematika', icon: '🔢' },
+    { nama: 'Pendidikan Pancasila', icon: '🇮🇩' },
 ];
 
 // ======================================
 // STATE
 // ======================================
+let currentUser = null;      // objek Firebase Auth user
+let currentProfile = null;   // dokumen Firestore /users/{uid} (berisi role, kibsaId, dst)
 let isAdmin = false;
-let currentUser = null;
+
 let editingPosterId = null;
+let editingPortalId = null;
+let editingMitraId = null;
 let editingMaterialId = null;
+
 let postersData = {};
 let materialsData = {};
-let portalsData = {}; // [BARU] POIN 4: data Portal Terkait
-let editingPortalId = null;
-let currentSlideIndex = 0;
-let currentMaterial = null;
-let currentLevelSection = null; // [BARU] 'materi' | 'latihan' | 'otakhebat' — bagian level yang sedang dibuka
-let studentName = '';
-let activeKelas = null;   // [BARU] kelas yang sedang dipilih di modal mapel
-let activeMapel = null;   // [BARU] mapel yang sedang dibuka di modal level
+let portalsData = {};
+let mitraData = {}; // [BARU] POIN 6
 
-// [BARU] POIN 4: state carousel poster
+let activeKelas = null;
+let activeMapel = null;
+
 let carouselIndex = 0;
 let carouselTimer = null;
 
-// ======================================
-// MODAL TENTANG KIBSA (Fungsi Global)
-// ======================================
-window.openTentangModal = () => {
-    const modal = document.getElementById('tentangModal');
-    if (modal) modal.classList.remove('hidden');
-};
-
-window.closeTentangModal = () => {
-    const modal = document.getElementById('tentangModal');
-    if (modal) modal.classList.add('hidden');
-};
+let authMode = 'login'; // 'login' | 'register'
+let pendingAction = null; // aksi tertunda yang menunggu login (mis. buka mapel modal)
 
 // ======================================
-// [BARU] POIN 5: KONVERTER LINK GOOGLE DRIVE -> DIRECT IMAGE STREAM
+// MODAL TENTANG KIBSA
+// ======================================
+window.openTentangModal = () => document.getElementById('tentangModal')?.classList.remove('hidden');
+window.closeTentangModal = () => document.getElementById('tentangModal')?.classList.add('hidden');
+
+// ======================================
+// KONVERTER LINK GOOGLE DRIVE -> DIRECT IMAGE STREAM
 // ======================================
 function convertGoogleDriveLink(url) {
     if (!url) return url;
     url = url.trim();
     try {
-        // Format umum: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
         let match = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-        if (match && match[1]) {
-            return `https://lh3.googleusercontent.com/d/${match[1]}`;
-        }
-        // Format alternatif: https://drive.google.com/open?id=FILE_ID
+        if (match && match[1]) return `https://lh3.googleusercontent.com/d/${match[1]}`;
         match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-        if (match && match[1]) {
-            return `https://lh3.googleusercontent.com/d/${match[1]}`;
-        }
-        // Sudah dalam format direct stream / bukan link Drive -> biarkan apa adanya
+        if (match && match[1]) return `https://lh3.googleusercontent.com/d/${match[1]}`;
         return url;
-    } catch (e) {
-        return url;
-    }
+    } catch (e) { return url; }
 }
 window.convertGoogleDriveLink = convertGoogleDriveLink;
+
+// ======================================
+// [BARU] POIN 8D: GENERATOR KIBSA ID
+// Format: [Urutan 3 digit][Tanggal Daftar DDMMYY][Tanggal Lahir DDMMYY]
+// ======================================
+function toDDMMYY(dateObj) {
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const y = String(dateObj.getFullYear()).slice(-2);
+    return `${d}${m}${y}`;
+}
+
+async function generateKibsaId(birthDateStr) {
+    // birthDateStr datang dari <input type="date"> => format "YYYY-MM-DD"
+    const usersSnap = await getDocs(collection(db, "users"));
+    const urutan = String(usersSnap.size + 1).padStart(3, '0');
+    const regDate = toDDMMYY(new Date());
+    const [by, bm, bd] = birthDateStr.split('-');
+    const birthDDMMYY = `${bd}${bm}${by.slice(-2)}`;
+    return `${urutan}${regDate}${birthDDMMYY}`;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
 
     // ======================================
-    // ELEMENT REFERENCES (Dengan toleransi ID)
+    // ELEMENT REFERENCES
     // ======================================
-    // Auth UI
-    const loginBtn = document.getElementById('loginBtn') || document.getElementById('login-btn');
-    const logoutBtn = document.getElementById('logoutBtn') || document.getElementById('logout-btn');
-    const adminBadge = document.getElementById('admin-badge');
+    // [DIUBAH] POIN 8A: satu set tombol auth untuk semua orang
+    const authOpenBtn = document.getElementById('auth-open-btn');
+    const authLogoutBtn = document.getElementById('auth-logout-btn');
+    const userBadge = document.getElementById('user-badge');
+    const userNameDisplay = document.getElementById('user-name-display');
+    const userRoleDisplay = document.getElementById('user-role-display');
 
-    // Poster UI
+    const authModal = document.getElementById('auth-modal');
+    const authTabLogin = document.getElementById('auth-tab-login');
+    const authTabRegister = document.getElementById('auth-tab-register');
+    const authGateNote = document.getElementById('auth-gate-note');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginSubmitBtn = document.getElementById('login-submit-btn');
+    const registerSubmitBtn = document.getElementById('register-submit-btn');
+
+    // Poster (Info & Event)
     const addPosterBtn = document.getElementById('add-poster-btn');
     const posterModal = document.getElementById('admin-poster-modal');
     const posterForm = document.getElementById('poster-form');
@@ -96,8 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const posterModalTitle = document.getElementById('poster-modal-title');
     const posterSubmitBtn = document.getElementById('poster-submit-btn');
     const posterImageUrlInput = document.getElementById('poster-image-url');
+    const posterDetailModal = document.getElementById('poster-detail-modal');
 
-    // [BARU] POIN 4: Portal Terkait UI
+    // Portal Terkait
     const addPortalBtn = document.getElementById('add-portal-btn');
     const portalModal = document.getElementById('admin-portal-modal');
     const portalForm = document.getElementById('portal-form');
@@ -106,192 +139,224 @@ document.addEventListener("DOMContentLoaded", () => {
     const portalModalTitle = document.getElementById('portal-modal-title');
     const portalSubmitBtn = document.getElementById('portal-submit-btn');
 
-    // Material UI
+    // [BARU] POIN 6: Mitra Kolaborasi
+    const addMitraBtn = document.getElementById('add-mitra-btn');
+    const mitraModal = document.getElementById('admin-mitra-modal');
+    const mitraForm = document.getElementById('mitra-form');
+    const mitraCancelBtn = document.getElementById('mitra-cancel-btn');
+    const mitraGrid = document.getElementById('mitra-grid');
+    const mitraModalTitle = document.getElementById('mitra-modal-title');
+    const mitraSubmitBtn = document.getElementById('mitra-submit-btn');
+    const mitraImageUrlInput = document.getElementById('mitra-image-url');
+    const mitraDetailModal = document.getElementById('mitra-detail-modal');
+
+    // Materi (admin)
     const addMaterialBtn = document.getElementById('add-material-btn');
     const materialModal = document.getElementById('admin-material-modal');
     const materialForm = document.getElementById('material-form');
     const materialCancelBtn = document.getElementById('mat-cancel-btn');
-    const materialGrid = document.getElementById('material-grid');
     const materialModalTitle = document.getElementById('material-modal-title');
     const materialSubmitBtn = document.getElementById('mat-submit-btn');
+    const matAngkaSelect = document.getElementById('mat-angka');
 
-    // Slide Viewer UI
-    const slideViewerModal = document.getElementById('slide-viewer-modal');
-    const closeSlideBtn = document.getElementById('close-slide-btn');
-    const slideViewerTitle = document.getElementById('slide-viewer-title');
-    const mascotContainer = document.getElementById('mascot-container');
-    const mascotImg = document.getElementById('mascot-img');
-    const mascotSpeech = document.getElementById('mascot-speech');
-    const slideContent = document.getElementById('slide-content');
-    const prevBtn = document.getElementById('prev-slide-btn');
-    const nextBtn = document.getElementById('next-slide-btn');
-
-    // Student Name Modal
-    const studentNameModal = document.getElementById('student-name-modal');
-    const studentNameForm = document.getElementById('student-name-form');
-    const studentNameInput = document.getElementById('student-name-input');
-    const studentNameCancelBtn = document.getElementById('student-name-cancel');
-
-    // [BARU] POIN 3: Kelas & Mapel & Level modal UI
+    // Kelas & Mapel & Materi (siswa)
     const kelasGrid = document.getElementById('kelas-grid');
     const mapelModal = document.getElementById('mapel-modal');
     const mapelModalTitle = document.getElementById('mapel-modal-title');
     const mapelList = document.getElementById('mapel-list');
-    const levelModal = document.getElementById('level-modal');
-    const levelModalTitle = document.getElementById('level-modal-title');
-    const levelModalSub = document.getElementById('level-modal-sub');
-    const levelList = document.getElementById('level-list');
+    const materiListModal = document.getElementById('materi-list-modal');
+    const materiListTitle = document.getElementById('materi-list-title');
+    const materiList = document.getElementById('materi-list');
 
-    // [BARU] POIN 2: Carousel UI (caption terpisah, bukan overlay)
+    // Carousel
     const carouselTrack = document.getElementById('poster-carousel-track');
     const carouselDots = document.getElementById('carousel-dots');
     const carouselCaption = document.getElementById('carousel-caption');
 
-    // [BARU] POIN 1: Modal Detail Event/Poster
-    const posterDetailModal = document.getElementById('poster-detail-modal');
+    // ======================================
+    // Isi dropdown "Angka Materi" 1-20
+    // ======================================
+    if (matAngkaSelect) {
+        for (let i = 1; i <= 20; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.innerText = i;
+            matAngkaSelect.appendChild(opt);
+        }
+    }
 
     // ======================================
-    // AUTH STATE LISTENER
+    // [BARU] POIN 8: AUTH STATE LISTENER (Email/Password + Firestore profile)
     // ======================================
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
-            // --- KUNCI KEAMANAN HANYA UNTUK DIMAS ---
-            if (user.email !== 'dimndot@gmail.com') {
-                await signOut(auth); // Langsung keluarkan akun yang bukan emailmu
-                alert("Maaf, akses ini khusus untuk Admin KIBSA.");
-                return; // Hentikan sistem admin
+            // Ambil profil dari Firestore /users/{uid}
+            try {
+                const usersSnap = await getDocs(collection(db, "users"));
+                let profileDoc = null;
+                usersSnap.forEach(d => { if (d.id === user.uid) profileDoc = { id: d.id, ...d.data() }; });
+                currentProfile = profileDoc;
+            } catch (e) {
+                console.error('Gagal memuat profil pengguna:', e);
+                currentProfile = null;
             }
-            // ----------------------------------------
 
-            isAdmin = true;
-            // Show admin UI (dengan perlindungan anti-error)
-            if (loginBtn) loginBtn.classList.add('hidden');
-            if (logoutBtn) logoutBtn.classList.remove('hidden');
-            if (adminBadge) {
-                adminBadge.classList.remove('hidden');
-                adminBadge.innerHTML = `
-                    <span class="flex items-center gap-2">
-                        <img src="${user.photoURL || ''}" onerror="this.style.display='none'" class="w-7 h-7 rounded-full border-2 border-green-400 object-cover" id="admin-avatar"/>
-                        <span class="text-sm font-bold text-green-700">${user.displayName || 'Admin'}</span>
-                        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">ADMIN</span>
-                    </span>
-                `;
+            isAdmin = !!(currentProfile && currentProfile.role === 'admin');
+
+            if (authOpenBtn) authOpenBtn.classList.add('hidden');
+            if (authLogoutBtn) authLogoutBtn.classList.remove('hidden');
+            if (userBadge) {
+                userBadge.classList.remove('hidden');
+                userBadge.classList.add('flex');
+                if (userNameDisplay) userNameDisplay.innerText = currentProfile ? (isAdmin ? ADMIN_USERNAME : currentProfile.namaLengkap) : (user.email || '');
+                if (userRoleDisplay) userRoleDisplay.innerText = isAdmin ? 'ADMIN' : (currentProfile ? `ID: ${currentProfile.kibsaId}` : '');
             }
-            if (addPosterBtn) addPosterBtn.classList.remove('hidden');
-            if (addMaterialBtn) addMaterialBtn.classList.remove('hidden');
-            if (addPortalBtn) addPortalBtn.classList.remove('hidden');
+
+            if (addPosterBtn) addPosterBtn.classList.toggle('hidden', !isAdmin);
+            if (addPortalBtn) addPortalBtn.classList.toggle('hidden', !isAdmin);
+            if (addMitraBtn) addMitraBtn.classList.toggle('hidden', !isAdmin);
+            if (addMaterialBtn) addMaterialBtn.classList.toggle('hidden', !isAdmin);
+
+            closeAuthModalInternal();
+
+            // Jika ada aksi tertunda (mis. buka kelas) sebelum login, lanjutkan sekarang
+            if (pendingAction) {
+                const action = pendingAction;
+                pendingAction = null;
+                action();
+            }
         } else {
+            currentProfile = null;
             isAdmin = false;
-            if (loginBtn) loginBtn.classList.remove('hidden');
-            if (logoutBtn) logoutBtn.classList.add('hidden');
-            if (adminBadge) adminBadge.classList.add('hidden');
+            if (authOpenBtn) authOpenBtn.classList.remove('hidden');
+            if (authLogoutBtn) authLogoutBtn.classList.add('hidden');
+            if (userBadge) { userBadge.classList.add('hidden'); userBadge.classList.remove('flex'); }
             if (addPosterBtn) addPosterBtn.classList.add('hidden');
-            if (addMaterialBtn) addMaterialBtn.classList.add('hidden');
             if (addPortalBtn) addPortalBtn.classList.add('hidden');
+            if (addMitraBtn) addMitraBtn.classList.add('hidden');
+            if (addMaterialBtn) addMaterialBtn.classList.add('hidden');
         }
         renderPosters();
-        renderMaterials();
-        renderPortals(); // [BARU] POIN 4
-        renderCarousel(); // [BARU] POIN 4
+        renderMaterialsHidden();
+        renderPortals();
+        renderMitra(); // [BARU] POIN 6
+        renderCarousel();
     });
 
     // ======================================
-    // AUTH HANDLERS — exposed globally for onclick attributes
+    // [BARU] POIN 8: MODAL AUTH — buka/tutup & ganti tab
     // ======================================
-    window.handleAdminLogin = async () => {
-        try {
-            if (loginBtn) {
-                loginBtn.innerText = 'Memuat...';
-                loginBtn.disabled = true;
-            }
-            const result = await signInWithPopup(auth, googleProvider);
-            if (result.user.email !== ADMIN_EMAIL) {
-                await signOut(auth);
-                alert('Akses ditolak. Akun ini tidak terdaftar sebagai admin KIBSA.');
-            }
-        } catch (error) {
-            if (error.code !== 'auth/popup-closed-by-user') {
-                alert('Login gagal: ' + error.message);
-            }
-        } finally {
-            if (loginBtn) {
-                loginBtn.innerText = 'Login Admin';
-                loginBtn.disabled = false;
-            }
+    window.openAuthModal = (gate) => {
+        if (authModal) authModal.classList.remove('hidden');
+        if (authGateNote) authGateNote.classList.toggle('hidden', !gate);
+    };
+    function closeAuthModalInternal() {
+        if (authModal) authModal.classList.add('hidden');
+        if (authGateNote) authGateNote.classList.add('hidden');
+        if (loginForm) loginForm.reset();
+        if (registerForm) registerForm.reset();
+    }
+    window.closeAuthModal = closeAuthModalInternal;
+
+    window.switchAuthTab = (mode) => {
+        authMode = mode;
+        if (mode === 'login') {
+            authTabLogin?.classList.add('auth-tab-active');
+            authTabRegister?.classList.remove('auth-tab-active');
+            loginForm?.classList.remove('hidden');
+            registerForm?.classList.add('hidden');
+        } else {
+            authTabRegister?.classList.add('auth-tab-active');
+            authTabLogin?.classList.remove('auth-tab-active');
+            registerForm?.classList.remove('hidden');
+            loginForm?.classList.add('hidden');
         }
     };
 
-    window.handleAdminLogout = async () => {
-        if (confirm('Apakah Anda yakin ingin keluar dari mode Admin?')) {
+    // Dipanggil oleh bagian yang butuh login (mis. buka kelas) — akan membuka modal
+    // dengan catatan "gate" dan menyimpan aksi untuk dilanjutkan setelah login sukses.
+    function requireAuth(actionFn) {
+        if (currentUser) {
+            actionFn();
+        } else {
+            pendingAction = actionFn;
+            switchAuthTab('login');
+            openAuthModal(true);
+        }
+    }
+
+    // ======================================
+    // FORM LOGIN (Email/Password)
+    // ======================================
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (loginSubmitBtn) { loginSubmitBtn.disabled = true; loginSubmitBtn.innerText = 'Memuat...'; }
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged akan menutup modal & melanjutkan pendingAction
+            } catch (err) {
+                alert('Login gagal: ' + (err.message || err.code));
+            } finally {
+                if (loginSubmitBtn) { loginSubmitBtn.disabled = false; loginSubmitBtn.innerText = 'Masuk'; }
+            }
+        });
+    }
+
+    // ======================================
+    // FORM DAFTAR (Registrasi + Generate KIBSA ID + Role Assignment)
+    // ======================================
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nama = document.getElementById('reg-nama').value.trim();
+            const tglLahir = document.getElementById('reg-tgl-lahir').value; // YYYY-MM-DD
+            const gender = document.getElementById('reg-gender').value;
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+
+            if (registerSubmitBtn) { registerSubmitBtn.disabled = true; registerSubmitBtn.innerText = 'Mendaftarkan...'; }
+            try {
+                // [BARU] POIN 8D: hitung KIBSA ID SEBELUM membuat akun (pakai jumlah user saat ini)
+                const kibsaId = await generateKibsaId(tglLahir);
+
+                // [BARU] POIN 8E: tentukan role berdasarkan email pendaftar
+                const role = (email.toLowerCase() === ADMIN_EMAIL) ? 'admin' : 'student';
+
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+                await setDoc(doc(db, "users", cred.user.uid), {
+                    namaLengkap: nama,
+                    tanggalLahir: tglLahir,
+                    jenisKelamin: gender,
+                    email: email,
+                    kibsaId: kibsaId,
+                    role: role,
+                    username: role === 'admin' ? ADMIN_USERNAME : nama,
+                    createdAt: new Date().toISOString(),
+                });
+
+                alert(`Selamat datang, ${nama}!\nID KIBSA kamu: ${kibsaId}\n(Harap diingat atau dicatat ya!)`);
+                // onAuthStateChanged akan mengambil profil & menutup modal otomatis
+            } catch (err) {
+                alert('Pendaftaran gagal: ' + (err.message || err.code));
+            } finally {
+                if (registerSubmitBtn) { registerSubmitBtn.disabled = false; registerSubmitBtn.innerText = 'Daftar & Buat ID KIBSA'; }
+            }
+        });
+    }
+
+    window.handleLogout = async () => {
+        if (confirm('Apakah kamu yakin ingin keluar?')) {
             await signOut(auth);
         }
     };
 
     // ======================================
-    // LOGIN SISWA (MASUK & TAMPILAN PROFIL)
-    // ======================================
-    window.openStudentLogin = () => {
-        if (studentNameModal) {
-            studentNameModal.dataset.pendingId = '';
-            studentNameModal.dataset.pendingSection = '';
-            studentNameModal.classList.remove('hidden');
-        }
-    };
-
-    window.updateStudentUI = () => {
-        const savedId = localStorage.getItem('kibsa_student_id');
-        const savedName = localStorage.getItem('kibsa_student_name');
-        const badge = document.getElementById('student-badge');
-        const btn = document.getElementById('student-login-btn');
-        const nameDisp = document.getElementById('student-name-display');
-        const idDisp = document.getElementById('student-id-display');
-
-        if (savedId && savedName) {
-            studentName = savedName;
-            if (badge) { badge.classList.remove('hidden'); badge.classList.add('flex'); }
-            if (btn) btn.classList.add('hidden');
-            if (nameDisp) nameDisp.innerText = savedName;
-            if (idDisp) idDisp.innerText = 'ID: ' + savedId;
-        }
-    };
-
-    updateStudentUI();
-
-    // ======================================
-    // [BARU] POIN 3: PROGRES LEVEL BERANTAI (disimpan di localStorage per siswa)
-    // ======================================
-    function progressKey() {
-        const sid = localStorage.getItem('kibsa_student_id') || 'guest';
-        return `kibsa_progress_${sid}`;
-    }
-
-    function getAllProgress() {
-        try { return JSON.parse(localStorage.getItem(progressKey()) || '{}'); }
-        catch (e) { return {}; }
-    }
-
-    function getMapelKey(jenjang, matpel) {
-        return `${jenjang}__${matpel}`;
-    }
-
-    // Ambil status level 1/2/3 untuk 1 mapel di 1 kelas
-    function getMapelProgress(jenjang, matpel) {
-        const all = getAllProgress();
-        const key = getMapelKey(jenjang, matpel);
-        return all[key] || { level1: false, level2: false, level3: false };
-    }
-
-    function markLevelComplete(jenjang, matpel, levelNum) {
-        const all = getAllProgress();
-        const key = getMapelKey(jenjang, matpel);
-        if (!all[key]) all[key] = { level1: false, level2: false, level3: false };
-        all[key][`level${levelNum}`] = true;
-        localStorage.setItem(progressKey(), JSON.stringify(all));
-    }
-
-    // ======================================
-    // [BARU] POIN 3: RENDER 6 KOTAK KELAS
+    // RENDER 6 KOTAK KELAS
     // ======================================
     function renderKelasBoxes() {
         if (!kelasGrid) return;
@@ -306,12 +371,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 <p class="font-bold text-slate-700 text-sm text-center">Kelas ${nomor} SD</p>
                 <button class="mt-3 w-full text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 py-2 rounded-full transition">Masuk Kelas</button>
             `;
-            box.addEventListener('click', () => openKelasModal(kelas));
+            // [DIUBAH] POIN 8B: akses materi wajib login — kalau belum, arahkan ke modal Masuk/Daftar
+            box.addEventListener('click', () => requireAuth(() => openKelasModal(kelas)));
             kelasGrid.appendChild(box);
         });
     }
 
-    // Buka modal pemilihan mapel untuk 1 kelas
     window.openKelasModal = (kelas) => {
         activeKelas = kelas;
         if (mapelModalTitle) mapelModalTitle.innerText = kelas;
@@ -320,79 +385,74 @@ document.addEventListener("DOMContentLoaded", () => {
             MAPEL_LIST.forEach(m => {
                 const item = document.createElement('button');
                 item.className = 'flex items-center gap-3 p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-400 hover:bg-indigo-50 transition text-left';
-                item.innerHTML = `
-                    <span class="text-3xl">${m.icon}</span>
-                    <span class="font-bold text-slate-700">${m.nama}</span>
-                `;
+                item.innerHTML = `<span class="text-3xl">${m.icon}</span><span class="font-bold text-slate-700">${m.nama}</span>`;
                 item.addEventListener('click', () => {
                     if (mapelModal) mapelModal.classList.add('hidden');
-                    openLevelModal(kelas, m.nama);
+                    openMateriListModal(kelas, m.nama);
                 });
                 mapelList.appendChild(item);
             });
         }
         if (mapelModal) mapelModal.classList.remove('hidden');
     };
-    window.closeMapelModal = () => { if (mapelModal) mapelModal.classList.add('hidden'); };
+    window.closeMapelModal = () => mapelModal?.classList.add('hidden');
 
-    // Cari materi Firebase yang cocok dengan kelas + mapel (dipakai sbg sumber Level 1/2/3)
-    function findMaterialFor(kelas, matpel) {
-        return Object.values(materialsData).find(m => m.jenjang === kelas && m.matpel === matpel) || null;
+    // ======================================
+    // [DIUBAH] POIN 2: MODAL "Materi & Pembahasan" — daftar materi per mapel,
+    // MENGGANTIKAN sistem Level Berantai (Level 1/2/3) sepenuhnya.
+    // ======================================
+    function findMaterialsFor(kelas, matpel) {
+        return Object.values(materialsData)
+            .filter(m => m.jenjang === kelas && m.matpel === matpel)
+            .sort((a, b) => Number(a.angka) - Number(b.angka));
     }
 
-    // Buka modal Level Berantai (Materi -> Latihan -> Otak Hebat)
-    window.openLevelModal = (kelas, matpel) => {
+    window.openMateriListModal = (kelas, matpel) => {
         activeKelas = kelas;
         activeMapel = matpel;
-        const mapelInfo = MAPEL_LIST.find(m => m.nama === matpel);
-        const material = findMaterialFor(kelas, matpel);
-        const progress = getMapelProgress(kelas, matpel);
+        const materials = findMaterialsFor(kelas, matpel);
 
-        if (levelModalTitle) levelModalTitle.innerText = `${matpel} — ${kelas}`;
-        if (levelModalSub) levelModalSub.innerText = material ? (material.tujuan_belajar || '') : 'Materi untuk mapel ini belum tersedia.';
-
-        const level2Unlocked = progress.level1;
-        const level3Unlocked = progress.level2;
-
-        const levels = [
-            { num: 1, title: 'Materi', desc: 'Pelajari konsep dasar lewat penjelasan bertahap.', unlocked: true, section: 'materi' },
-            { num: 2, title: 'Latihan Soal', desc: 'Uji pemahamanmu lewat soal bertingkat 🟢🟡🔴.', unlocked: level2Unlocked, section: 'latihan' },
-            { num: 3, title: 'Otak Hebat', desc: mapelInfo ? mapelInfo.otakHebatInfo : 'Tantangan akhir.', unlocked: level3Unlocked, section: 'otakhebat' },
-        ];
-
-        if (levelList) {
-            levelList.innerHTML = '';
-            if (!material) {
-                levelList.innerHTML = '<p class="text-slate-400 text-center py-6">Materi belum tersedia untuk mapel ini. Nantikan update dari admin ya!</p>';
+        if (materiListTitle) materiListTitle.innerText = `${matpel} — ${kelas}`;
+        if (materiList) {
+            materiList.innerHTML = '';
+            if (materials.length === 0) {
+                materiList.innerHTML = '<p class="text-slate-400 text-center py-6">Materi untuk mapel ini belum tersedia. Nantikan update dari admin ya!</p>';
             } else {
-                levels.forEach(lv => {
-                    const card = document.createElement('div');
-                    card.className = `level-card ${lv.unlocked ? 'level-unlocked bg-white' : 'level-locked bg-slate-100'} border-2 ${lv.unlocked ? 'border-indigo-200' : 'border-slate-200'} rounded-xl p-4 flex items-center justify-between`;
-                    card.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">${lv.unlocked ? '🟢' : '🔒'}</span>
-                            <div>
-                                <p class="font-bold text-slate-800">Level ${lv.num}: ${lv.title}</p>
-                                <p class="text-xs text-slate-500">${lv.desc}</p>
-                            </div>
+                materials.forEach(mat => {
+                    const row = document.createElement('div');
+                    row.className = 'materi-item bg-white border-2 border-indigo-100 rounded-xl p-4 flex items-center justify-between gap-3';
+                    const adminActions = isAdmin ? `
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button data-id="${mat.id}" class="edit-mat-btn bg-yellow-400 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-yellow-500 transition text-sm">✏️</button>
+                            <button data-id="${mat.id}" class="delete-mat-btn bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition text-sm">🗑️</button>
+                        </div>` : '';
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3 min-w-0" data-open-slide="${mat.id}">
+                            <span class="text-2xl">📄</span>
+                            <p class="font-bold text-slate-800 truncate">${mat.angka}. ${mat.judul}</p>
                         </div>
+                        ${adminActions}
                     `;
-                    if (lv.unlocked) {
-                        card.addEventListener('click', () => {
-                            if (levelModal) levelModal.classList.add('hidden');
-                            window.openSlide(material.id, lv.section);
-                        });
-                    }
-                    levelList.appendChild(card);
+                    row.querySelector('[data-open-slide]').addEventListener('click', () => {
+                        window.open(mat.slideLink, '_blank', 'noopener');
+                    });
+                    materiList.appendChild(row);
                 });
             }
         }
-        if (levelModal) levelModal.classList.remove('hidden');
+        if (materiListModal) materiListModal.classList.remove('hidden');
+
+        if (isAdmin) {
+            materiList.querySelectorAll('.edit-mat-btn').forEach(btn =>
+                btn.addEventListener('click', e => { e.stopPropagation(); editMaterial(e.currentTarget.dataset.id); }));
+            materiList.querySelectorAll('.delete-mat-btn').forEach(btn =>
+                btn.addEventListener('click', e => { e.stopPropagation(); deleteMaterial(e.currentTarget.dataset.id); }));
+        }
     };
-    window.closeLevelModal = () => { if (levelModal) levelModal.classList.add('hidden'); };
+    window.closeMateriListModal = () => materiListModal?.classList.add('hidden');
 
     // ======================================
-    // [BARU] POIN 4: CAROUSEL POSTER AUTO-PLAY
+    // CAROUSEL POSTER AUTO-PLAY
     // ======================================
     function renderCarousel() {
         if (!carouselTrack) return;
@@ -407,10 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        posters.forEach((p, i) => {
-            // [DIUBAH] POIN 2: gambar ditampilkan penuh (object-fit: contain) di atas
-            // latar blur dari gambar yang sama; TIDAK ADA lagi teks overlay di atas
-            // gambar — judul dipindah ke caption terpisah (#carousel-caption) di bawah.
+        posters.forEach((p) => {
             const slide = document.createElement('div');
             slide.className = 'carousel-slide';
             slide.innerHTML = `
@@ -418,7 +475,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <img src="${p.imageUrl}" alt="${p.title}" class="carousel-slide-img" onerror="this.src='https://placehold.co/800x400/e2e8f0/94a3b8?text=Poster'">
             `;
             carouselTrack.appendChild(slide);
+        });
 
+        posters.forEach((p, i) => {
             if (carouselDots) {
                 const dot = document.createElement('div');
                 dot.className = `carousel-dot ${i === 0 ? 'active' : ''}`;
@@ -430,7 +489,6 @@ document.addEventListener("DOMContentLoaded", () => {
         carouselIndex = 0;
         updateCarouselPosition(posters);
 
-        // Auto-play berkala setiap 4 detik
         if (posters.length > 1) {
             carouselTimer = setInterval(() => {
                 carouselIndex = (carouselIndex + 1) % posters.length;
@@ -448,273 +506,170 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!carouselTrack) return;
         carouselTrack.style.transform = `translateX(-${carouselIndex * 100}%)`;
         if (carouselDots) {
-            Array.from(carouselDots.children).forEach((d, i) => {
-                d.classList.toggle('active', i === carouselIndex);
-            });
+            Array.from(carouselDots.children).forEach((d, i) => d.classList.toggle('active', i === carouselIndex));
         }
-        // [BARU] POIN 2: caption judul mengikuti slide yang sedang aktif, ditempatkan di luar gambar
         if (carouselCaption && posters && posters[carouselIndex]) {
             carouselCaption.innerText = posters[carouselIndex].title || '';
         }
     }
 
     // ======================================
-    // MODAL HANDLERS
+    // MODAL HANDLERS: EVENT (POSTER)
     // ======================================
     if (addPosterBtn) {
         addPosterBtn.addEventListener('click', () => {
             editingPosterId = null;
-            if (posterForm) posterForm.reset();
+            posterForm?.reset();
             if (posterModalTitle) posterModalTitle.innerText = 'Tambah Event / Pengumuman';
-            if (posterModal) posterModal.classList.remove('hidden');
+            posterModal?.classList.remove('hidden');
         });
     }
-
-    if (posterCancelBtn) {
-        posterCancelBtn.addEventListener('click', () => posterModal.classList.add('hidden'));
-    }
-
-    // [BARU] POIN 5: Konversi otomatis link Google Drive saat admin keluar dari input URL gambar
+    if (posterCancelBtn) posterCancelBtn.addEventListener('click', () => posterModal.classList.add('hidden'));
     if (posterImageUrlInput) {
         posterImageUrlInput.addEventListener('blur', () => {
             posterImageUrlInput.value = convertGoogleDriveLink(posterImageUrlInput.value);
         });
     }
 
+    // ======================================
+    // MODAL HANDLERS: PORTAL
+    // ======================================
+    if (addPortalBtn) {
+        addPortalBtn.addEventListener('click', () => {
+            editingPortalId = null;
+            portalForm?.reset();
+            if (portalModalTitle) portalModalTitle.innerText = 'Tambah Portal Terkait';
+            portalModal?.classList.remove('hidden');
+        });
+    }
+    if (portalCancelBtn) portalCancelBtn.addEventListener('click', () => portalModal.classList.add('hidden'));
+
+    // ======================================
+    // [BARU] POIN 6: MODAL HANDLERS: MITRA KOLABORASI
+    // ======================================
+    if (addMitraBtn) {
+        addMitraBtn.addEventListener('click', () => {
+            editingMitraId = null;
+            mitraForm?.reset();
+            if (mitraModalTitle) mitraModalTitle.innerText = 'Tambah Mitra Kolaborasi';
+            mitraModal?.classList.remove('hidden');
+        });
+    }
+    if (mitraCancelBtn) mitraCancelBtn.addEventListener('click', () => mitraModal.classList.add('hidden'));
+    if (mitraImageUrlInput) {
+        mitraImageUrlInput.addEventListener('blur', () => {
+            mitraImageUrlInput.value = convertGoogleDriveLink(mitraImageUrlInput.value);
+        });
+    }
+
+    if (mitraForm) {
+        mitraForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (mitraSubmitBtn) { mitraSubmitBtn.disabled = true; mitraSubmitBtn.innerText = 'Menyimpan...'; }
+            try {
+                const rawUrl = document.getElementById('mitra-image-url').value;
+                const data = {
+                    judul: document.getElementById('mitra-judul').value,
+                    imageUrl: convertGoogleDriveLink(rawUrl),
+                    date: document.getElementById('mitra-date').value,
+                    description: document.getElementById('mitra-desc').value,
+                };
+                if (editingMitraId) {
+                    await updateDoc(doc(db, "mitra", editingMitraId), data);
+                } else {
+                    await addDoc(collection(db, "mitra"), data);
+                }
+                mitraModal?.classList.add('hidden');
+                mitraForm.reset();
+                editingMitraId = null;
+            } catch (e) { alert('Error: ' + e.message); }
+            finally {
+                if (mitraSubmitBtn) { mitraSubmitBtn.disabled = false; mitraSubmitBtn.innerText = 'Simpan'; }
+            }
+        });
+    }
+
+    window.editMitra = function (id) {
+        const m = mitraData[id];
+        if (!m) return;
+        editingMitraId = id;
+        document.getElementById('mitra-judul').value = m.judul || '';
+        document.getElementById('mitra-image-url').value = m.imageUrl || '';
+        document.getElementById('mitra-date').value = m.date || '';
+        document.getElementById('mitra-desc').value = m.description || '';
+        if (mitraModalTitle) mitraModalTitle.innerText = 'Edit Mitra Kolaborasi';
+        mitraModal?.classList.remove('hidden');
+    };
+    window.deleteMitra = async function (id) {
+        if (!confirm('Hapus mitra ini dari daftar?')) return;
+        try { await deleteDoc(doc(db, "mitra", id)); }
+        catch (e) { alert('Gagal menghapus: ' + e.message); }
+    };
+
+    window.openMitraDetail = function (id) {
+        const m = mitraData[id];
+        if (!m || !mitraDetailModal) return;
+        document.getElementById('mitra-detail-img').src = m.imageUrl || '';
+        document.getElementById('mitra-detail-title').innerText = m.judul || '';
+        document.getElementById('mitra-detail-date').innerText = '📅 ' + (m.date || '');
+        document.getElementById('mitra-detail-description').innerText = m.description || '';
+        mitraDetailModal.classList.remove('hidden');
+    };
+    window.closeMitraDetail = () => mitraDetailModal?.classList.add('hidden');
+
+    function renderMitra() {
+        if (!mitraGrid) return;
+        mitraGrid.innerHTML = '';
+        const items = Object.values(mitraData);
+        if (items.length === 0) {
+            mitraGrid.innerHTML = '<p class="text-slate-400 col-span-full text-center py-10">Belum ada mitra kolaborasi. Admin dapat menambahkan yang baru.</p>';
+            return;
+        }
+        items.forEach(m => {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl transition-all relative';
+            const adminActions = isAdmin ? `
+                <div class="absolute top-2 right-2 flex gap-2 z-10">
+                    <button data-id="${m.id}" class="edit-mitra-btn bg-yellow-400 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-yellow-500 transition">✏️</button>
+                    <button data-id="${m.id}" class="delete-mitra-btn bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition">🗑️</button>
+                </div>` : '';
+            card.innerHTML = `
+                <div class="relative w-full mitra-card-img bg-slate-100 flex-shrink-0 overflow-hidden">
+                    <img src="${m.imageUrl}" alt="${m.judul}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/500x400/e2e8f0/94a3b8?text=Mitra'">
+                    ${adminActions}
+                </div>
+                <div class="p-4 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        <h3 class="text-base font-bold text-slate-800 truncate">${m.judul}</h3>
+                        <p class="text-slate-400 text-[0.7rem] font-semibold">📅 ${m.date}</p>
+                    </div>
+                    <button data-id="${m.id}" class="view-mitra-detail-btn flex-shrink-0 text-[0.7rem] font-bold bg-orange-50 text-orange-700 hover:bg-orange-100 px-3 py-1.5 rounded-full transition">+ Lihat Detail</button>
+                </div>`;
+            mitraGrid.appendChild(card);
+        });
+
+        mitraGrid.querySelectorAll('.view-mitra-detail-btn').forEach(btn =>
+            btn.addEventListener('click', e => openMitraDetail(e.currentTarget.dataset.id)));
+        if (isAdmin) {
+            mitraGrid.querySelectorAll('.edit-mitra-btn').forEach(btn =>
+                btn.addEventListener('click', e => editMitra(e.currentTarget.dataset.id)));
+            mitraGrid.querySelectorAll('.delete-mitra-btn').forEach(btn =>
+                btn.addEventListener('click', e => deleteMitra(e.currentTarget.dataset.id)));
+        }
+    }
+
+    // ======================================
+    // MODAL HANDLERS: MATERI (Admin)
+    // ======================================
     if (addMaterialBtn) {
         addMaterialBtn.addEventListener('click', () => {
             editingMaterialId = null;
-            if (materialForm) materialForm.reset();
-            if (materialModalTitle) materialModalTitle.innerText = 'Tambah Materi Slide';
-            if (materialModal) materialModal.classList.remove('hidden');
+            materialForm?.reset();
+            if (materialModalTitle) materialModalTitle.innerText = 'Tambah Materi & Pembahasan';
+            materialModal?.classList.remove('hidden');
         });
     }
-
-    if (materialCancelBtn) {
-        materialCancelBtn.addEventListener('click', () => materialModal.classList.add('hidden'));
-    }
-
-    if (closeSlideBtn) {
-        closeSlideBtn.addEventListener('click', () => {
-            if (slideViewerModal) slideViewerModal.classList.add('hidden');
-            currentMaterial = null;
-            currentSlideIndex = 0;
-            currentLevelSection = null;
-        });
-    }
-
-    // ======================================
-    // STUDENT NAME PROMPT
-    // ======================================
-    // [DIUBAH] POIN 3: openSlide sekarang menerima parameter section ('materi'|'latihan'|'otakhebat')
-    window.openSlide = (id, section) => {
-        const material = materialsData[id];
-        if (!material) return;
-
-        if (!studentName && studentNameModal) {
-            studentNameModal.classList.remove('hidden');
-            studentNameModal.dataset.pendingId = id;
-            studentNameModal.dataset.pendingSection = section || '';
-        } else {
-            _launchSlide(id, section);
-        }
-    };
-
-    if (studentNameForm) {
-        studentNameForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = studentNameInput ? studentNameInput.value.trim() : '';
-            if (!name) return;
-
-            const submitBtn = studentNameForm.querySelector('button[type="submit"]');
-            submitBtn.innerText = 'Membuat ID...';
-            submitBtn.disabled = true;
-
-            try {
-                let savedId = localStorage.getItem('kibsa_student_id');
-                let savedName = localStorage.getItem('kibsa_student_name');
-
-                if (!savedId || savedName !== name) {
-                    const now = new Date();
-                    const d = String(now.getDate()).padStart(2, '0');
-                    const m = String(now.getMonth() + 1).padStart(2, '0');
-                    const y = String(now.getFullYear()).slice(-2);
-                    const dateStr = `${d}${m}${y}`;
-
-                    const studentsSnap = await getDocs(collection(db, "students"));
-                    const urutan = String(studentsSnap.size + 1).padStart(2, '0');
-
-                    savedId = `${urutan}${dateStr}`;
-
-                    await addDoc(collection(db, "students"), {
-                        nama: name,
-                        id_siswa: savedId,
-                        tanggal_daftar: new Date().toISOString()
-                    });
-
-                    localStorage.setItem('kibsa_student_id', savedId);
-                    localStorage.setItem('kibsa_student_name', name);
-
-                    alert(`Selamat datang, ${name}!\nID Belajarmu adalah: ${savedId}\n(Harap diingat atau dicatat ya!)`);
-                }
-
-                studentName = name;
-                studentNameModal.classList.add('hidden');
-
-                updateStudentUI();
-
-                const pendingId = studentNameModal.dataset.pendingId;
-                const pendingSection = studentNameModal.dataset.pendingSection;
-                if (pendingId) _launchSlide(pendingId, pendingSection);
-
-            } catch (error) {
-                console.error("Gagal membuat ID:", error);
-                alert("Terjadi kesalahan sistem saat membuat ID.");
-            } finally {
-                submitBtn.innerText = 'Mulai Belajar';
-                submitBtn.disabled = false;
-            }
-        });
-    }
-
-    if (studentNameCancelBtn) {
-        studentNameCancelBtn.addEventListener('click', () => {
-            studentNameModal.classList.add('hidden');
-        });
-    }
-
-    // [DIUBAH] POIN 3: _launchSlide menerima section awal & mengarahkan currentSlideIndex ke bagian tsb
-    function _launchSlide(id, section) {
-        currentMaterial = materialsData[id];
-        currentLevelSection = section || null;
-        currentSlideIndex = 0;
-
-        // Hitung index awal berdasarkan section yang diminta (langsung loncat ke Level terkait)
-        if (currentMaterial) {
-            let kontenData = [];
-            try { kontenData = JSON.parse(currentMaterial.konten_slide || '[]'); } catch (e) { }
-            if (section === 'latihan') {
-                currentSlideIndex = kontenData.length + 1; // langsung ke halaman latihan
-            } else if (section === 'otakhebat') {
-                let latihanData = [];
-                try { latihanData = JSON.parse(currentMaterial.latihan_soal || '[]'); } catch (e) { }
-                currentSlideIndex = kontenData.length + (latihanData.length > 0 ? 2 : 1);
-            }
-        }
-
-        if (slideViewerTitle) slideViewerTitle.innerText = currentMaterial.judul_topik;
-        if (slideViewerModal) slideViewerModal.classList.remove('hidden');
-        renderSlide();
-    }
-
-    // ======================================
-    // SLIDE VIEWER RENDERER
-    // ======================================
-    function renderSlide() {
-        if (!currentMaterial) return;
-
-        if (mascotContainer) mascotContainer.classList.remove('hidden');
-        const mascotMap = { 'Kiko': '🐢', 'Bimo': '🐻', 'Lala': '🐰' };
-
-        if (mascotImg) {
-            mascotImg.innerHTML = `<span class="text-4xl">${mascotMap[currentMaterial.karakter_maskot] || '😊'}</span>`;
-        }
-
-        if (mascotSpeech) {
-            mascotSpeech.innerHTML = `<span class="font-bold text-indigo-700">Halo${studentName ? ', ' + studentName : ''}! Aku ${currentMaterial.karakter_maskot}!</span><br>Ayo belajar <em>${currentMaterial.matpel}</em> bareng!`;
-        }
-
-        let kontenData = [];
-        let latihanData = [];
-        try { kontenData = JSON.parse(currentMaterial.konten_slide || '[]'); } catch (e) { }
-        try { latihanData = JSON.parse(currentMaterial.latihan_soal || '[]'); } catch (e) { }
-
-        const totalPages = 1 + kontenData.length + (latihanData.length > 0 ? 1 : 0) + (currentMaterial.otak_hebat ? 1 : 0);
-
-        if (prevBtn) prevBtn.disabled = currentSlideIndex === 0;
-        if (nextBtn) nextBtn.disabled = currentSlideIndex === totalPages - 1;
-
-        const slidePageInfo = document.getElementById('slide-page-info');
-        if (slidePageInfo) slidePageInfo.innerText = `${currentSlideIndex + 1} / ${totalPages}`;
-
-        let contentHtml = '';
-
-        if (currentSlideIndex === 0) {
-            // Tujuan Belajar
-            contentHtml = `
-                <div class="text-center py-10 px-6">
-                    <div class="text-5xl mb-4">🎯</div>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-6">Tujuan Belajar Hari Ini</h2>
-                    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded-r-2xl inline-block text-left max-w-2xl mx-auto shadow-sm">
-                        <p class="text-lg text-slate-700 font-medium leading-relaxed">${(currentMaterial.tujuan_belajar || '').replace(/\n/g, '<br>')}</p>
-                    </div>
-                    <p class="mt-6 text-slate-400 text-sm">Tekan <strong>Selanjutnya</strong> untuk mulai! 🚀</p>
-                </div>`;
-        } else if (currentSlideIndex <= kontenData.length) {
-            // Konten Slide (Level 1: Materi)
-            const slide = kontenData[currentSlideIndex - 1];
-            contentHtml = `
-                <div class="py-8 px-6 max-w-4xl mx-auto w-full">
-                    <h3 class="text-2xl font-bold text-slate-800 mb-4">${slide.judul || 'Materi'}</h3>
-                    <p class="text-lg text-slate-700 mb-6 leading-relaxed">${slide.teks || ''}</p>
-                    ${slide.contoh ? `<div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4"><strong class="text-blue-800">💡 Contoh Sehari-hari:</strong><br><span class="text-blue-900">${slide.contoh}</span></div>` : ''}
-                    ${slide.petunjuk_visual ? `<div class="bg-amber-50 p-4 rounded-xl border border-amber-200"><strong class="text-amber-800">👀 Lihat ini:</strong><br><span class="text-amber-900">${slide.petunjuk_visual}</span></div>` : ''}
-                </div>`;
-            // [BARU] POIN 3: Level 1 selesai begitu mencapai slide konten terakhir -> buka kunci Level 2
-            if (currentSlideIndex === kontenData.length && activeKelas && activeMapel) {
-                markLevelComplete(activeKelas, activeMapel, 1);
-            }
-        } else if (currentSlideIndex === kontenData.length + 1 && latihanData.length > 0) {
-            // Latihan Soal (Level 2)
-            let soalHtml = '';
-            latihanData.forEach((soal, i) => {
-                const badgeMap = { 'Mudah': '🟢 Mudah', 'Sedang': '🟡 Sedang', 'Tantangan': '🔴 Tantangan' };
-                const badge = badgeMap[soal.tingkat] || soal.tingkat;
-                soalHtml += `
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-4">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="font-bold text-slate-800">Soal ${i + 1}</span>
-                            <span class="text-xs font-bold px-3 py-1 bg-slate-100 rounded-full">${badge}</span>
-                        </div>
-                        <p class="text-slate-700 mb-4 text-base">${soal.pertanyaan}</p>
-                        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-4 py-2 rounded-full font-semibold transition">
-                            Lihat Jawaban 👁️
-                        </button>
-                        <div class="hidden mt-3 bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
-                            <strong class="text-green-800">Jawaban:</strong> ${soal.kunci}<br>
-                            <strong class="text-green-800">Feedback:</strong> ${soal.feedback}
-                        </div>
-                    </div>`;
-            });
-            contentHtml = `
-                <div class="py-6 px-4 max-w-3xl mx-auto w-full">
-                    <h2 class="text-2xl font-extrabold text-slate-800 mb-6 text-center">✏️ Latihan Soal Bertingkat</h2>
-                    ${soalHtml}
-                </div>`;
-            if (mascotSpeech) mascotSpeech.innerHTML = `<span class="font-bold text-indigo-700">Ayo ${studentName || 'Kamu'}!</span> Jangan takut salah, yang penting semangat! 💪`;
-            // [BARU] POIN 3: Level 2 selesai saat halaman latihan dibuka penuh -> buka kunci Level 3
-            if (activeKelas && activeMapel) markLevelComplete(activeKelas, activeMapel, 2);
-        } else {
-            // Otak Hebat (Level 3)
-            contentHtml = `
-                <div class="text-center py-10 px-4 max-w-3xl mx-auto w-full">
-                    <div class="text-6xl mb-4">🧠</div>
-                    <h2 class="text-3xl font-extrabold text-slate-800 mb-6">OTAK HEBAT!</h2>
-                    <div class="bg-gradient-to-br from-orange-400 to-amber-500 p-8 rounded-2xl text-white shadow-lg text-left">
-                        <h3 class="text-xl font-bold mb-4">🎯 Tantangan Logika</h3>
-                        <p class="text-lg leading-relaxed">${currentMaterial.otak_hebat || ''}</p>
-                    </div>
-                </div>`;
-            if (mascotSpeech) mascotSpeech.innerHTML = `<span class="font-bold text-orange-600">Wah, ${studentName || 'kamu'} sampai OTAK HEBAT!</span> Keren sekali! 🎉`;
-            // [BARU] POIN 3: Level 3 selesai
-            if (activeKelas && activeMapel) markLevelComplete(activeKelas, activeMapel, 3);
-        }
-
-        if (slideContent) slideContent.innerHTML = contentHtml;
-    }
-
-    if (prevBtn) prevBtn.addEventListener('click', () => { if (currentSlideIndex > 0) { currentSlideIndex--; renderSlide(); } });
-    if (nextBtn) nextBtn.addEventListener('click', () => { currentSlideIndex++; renderSlide(); });
+    if (materialCancelBtn) materialCancelBtn.addEventListener('click', () => materialModal.classList.add('hidden'));
 
     // ======================================
     // REALTIME FIRESTORE LISTENERS
@@ -723,58 +678,49 @@ document.addEventListener("DOMContentLoaded", () => {
         postersData = {};
         snapshot.forEach(d => { postersData[d.id] = { id: d.id, ...d.data() }; });
         renderPosters();
-        renderCarousel(); // [BARU] POIN 4: sinkronkan carousel tiap data poster berubah
+        renderCarousel();
     });
 
     onSnapshot(collection(db, "materials"), (snapshot) => {
         materialsData = {};
         snapshot.forEach(d => { materialsData[d.id] = { id: d.id, ...d.data() }; });
-        renderMaterials();
+        renderMaterialsHidden();
+        // Jika modal daftar materi sedang terbuka, refresh isinya
+        if (materiListModal && !materiListModal.classList.contains('hidden') && activeKelas && activeMapel) {
+            openMateriListModal(activeKelas, activeMapel);
+        }
     });
 
-    // [BARU] POIN 4: listener realtime untuk koleksi "portals"
     onSnapshot(collection(db, "portals"), (snapshot) => {
         portalsData = {};
         snapshot.forEach(d => { portalsData[d.id] = { id: d.id, ...d.data() }; });
         renderPortals();
     });
 
+    // [BARU] POIN 6: listener realtime untuk koleksi "mitra"
+    onSnapshot(collection(db, "mitra"), (snapshot) => {
+        mitraData = {};
+        snapshot.forEach(d => { mitraData[d.id] = { id: d.id, ...d.data() }; });
+        renderMitra();
+    });
+
     // ======================================
-    // [BARU] POIN 1: MODAL DETAIL EVENT/POSTER
+    // MODAL DETAIL EVENT/POSTER
     // ======================================
     window.openPosterDetail = function (id) {
         const poster = postersData[id];
         if (!poster || !posterDetailModal) return;
-
-        const imgEl = document.getElementById('poster-detail-img');
-        const catEl = document.getElementById('poster-detail-category');
-        const titleEl = document.getElementById('poster-detail-title');
-        const dateEl = document.getElementById('poster-detail-date');
-        const descEl = document.getElementById('poster-detail-description');
+        document.getElementById('poster-detail-img').src = poster.imageUrl || '';
+        document.getElementById('poster-detail-category').innerText = poster.category || 'Tanpa Kategori';
+        document.getElementById('poster-detail-title').innerText = poster.title || '';
+        document.getElementById('poster-detail-date').innerText = '📅 ' + (poster.date || '');
+        document.getElementById('poster-detail-description').innerText = poster.description || '';
         const linkEl = document.getElementById('poster-detail-link');
-
-        if (imgEl) imgEl.src = poster.imageUrl || '';
-        if (catEl) {
-            // Badge kategori dipindah ke sini (tidak lagi tampil di kartu)
-            catEl.innerText = poster.category || 'Tanpa Kategori';
-        }
-        if (titleEl) titleEl.innerText = poster.title || '';
-        if (dateEl) dateEl.innerText = '📅 ' + (poster.date || '');
-        if (descEl) descEl.innerText = poster.description || '';
-        if (linkEl) {
-            if (poster.registrationLink) {
-                linkEl.href = poster.registrationLink;
-                linkEl.classList.remove('hidden');
-            } else {
-                linkEl.classList.add('hidden');
-            }
-        }
-
+        if (poster.registrationLink) { linkEl.href = poster.registrationLink; linkEl.classList.remove('hidden'); }
+        else { linkEl.classList.add('hidden'); }
         posterDetailModal.classList.remove('hidden');
     };
-    window.closePosterDetail = function () {
-        if (posterDetailModal) posterDetailModal.classList.add('hidden');
-    };
+    window.closePosterDetail = function () { posterDetailModal?.classList.add('hidden'); };
 
     // ======================================
     // RENDER POSTERS (Kartu Info & Event)
@@ -787,23 +733,13 @@ document.addEventListener("DOMContentLoaded", () => {
             posterGrid.innerHTML = '<p class="text-slate-400 col-span-full text-center py-10">Belum ada event/pengumuman. Admin dapat menambahkan yang baru.</p>';
             return;
         }
-
         posters.forEach(poster => {
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl transition-all relative';
-
             const adminActions = isAdmin ? `
                 <div class="absolute top-2 right-2 flex gap-2 z-10">
                     <button data-id="${poster.id}" class="edit-poster-btn bg-yellow-400 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-yellow-500 transition">✏️</button>
                     <button data-id="${poster.id}" class="delete-poster-btn bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition">🗑️</button>
                 </div>` : '';
-
-            // Catatan: tombol "Daftar Sekarang" (registrationLink) sekarang ditampilkan
-            // di dalam Modal Detail (lihat openPosterDetail), bukan langsung di kartu.
-            // [DIUBAH] POIN 1: kartu dirombak total —
-            // - Badge kategori & deskripsi DIHAPUS dari tampilan kartu (dipindah ke modal detail)
-            // - Area gambar dibuat memenuhi ~80% tinggi kartu (h-72 dari total kartu h-[22rem])
-            // - Footer hanya berisi Judul singkat, Tanggal, dan tombol "+ Lihat Detail"
             card.className = 'bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl transition-all relative h-[22rem]';
             card.innerHTML = `
                 <div class="relative w-full h-72 bg-slate-100 flex-shrink-0 overflow-hidden">
@@ -820,10 +756,8 @@ document.addEventListener("DOMContentLoaded", () => {
             posterGrid.appendChild(card);
         });
 
-        // [BARU] POIN 1: tombol "+ Lihat Detail" berlaku untuk semua pengunjung (bukan hanya admin)
         document.querySelectorAll('.view-detail-btn').forEach(btn =>
             btn.addEventListener('click', e => openPosterDetail(e.currentTarget.dataset.id)));
-
         if (isAdmin) {
             document.querySelectorAll('.edit-poster-btn').forEach(btn => btn.addEventListener('click', e => editPoster(e.currentTarget.dataset.id)));
             document.querySelectorAll('.delete-poster-btn').forEach(btn => btn.addEventListener('click', e => deletePoster(e.currentTarget.dataset.id)));
@@ -831,44 +765,27 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ======================================
-    // RENDER MATERIALS (grid tersembunyi, dipakai sistem Level di belakang layar)
+    // RENDER MATERI (tersembunyi, sumber data untuk modal Materi & Pembahasan)
     // ======================================
-    function renderMaterials() {
-        if (!materialGrid) return;
-        materialGrid.innerHTML = '';
-        const materials = Object.values(materialsData);
-
-        materials.forEach(mat => {
-            const card = document.createElement('div');
-            card.className = 'bg-white rounded-2xl shadow-md p-6 border border-slate-200 flex flex-col hover:shadow-xl transition-all relative';
-
-            const adminActions = isAdmin ? `
-                <div class="absolute -top-3 -right-3 flex gap-2 z-10">
-                    <button data-id="${mat.id}" class="edit-mat-btn bg-yellow-400 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-yellow-500 transition">✏️</button>
-                    <button data-id="${mat.id}" class="delete-mat-btn bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition">🗑️</button>
-                </div>` : '';
-
-            card.innerHTML = `
-                ${adminActions}
-                <span class="text-xs font-bold bg-orange-100 text-orange-700 px-3 py-1 rounded-full">${mat.jenjang}</span>
-                <span class="text-xs font-bold text-indigo-500 uppercase tracking-widest mt-2 mb-1 block">${mat.matpel}</span>
-                <h3 class="text-xl font-bold text-slate-800 mb-2 leading-tight">${mat.judul_topik}</h3>
-            `;
-            materialGrid.appendChild(card);
-        });
-
-        // [BARU] POIN 3: setiap kali data materi berubah, refresh kotak kelas
+    function renderMaterialsHidden() {
         renderKelasBoxes();
-
-        if (isAdmin) {
-            document.querySelectorAll('.edit-mat-btn').forEach(btn => btn.addEventListener('click', e => editMaterial(e.currentTarget.dataset.id)));
-            document.querySelectorAll('.delete-mat-btn').forEach(btn => btn.addEventListener('click', e => deleteMaterial(e.currentTarget.dataset.id)));
-        }
     }
 
     // ======================================
-    // [BARU] POIN 4: RENDER & CRUD PORTAL TERKAIT
+    // RENDER & CRUD PORTAL TERKAIT
     // ======================================
+    // [BARU] POIN 5: ikon tematik sederhana berdasarkan kata kunci nama portal
+    function pickPortalIcon(nama) {
+        const n = (nama || '').toLowerCase();
+        if (n.includes('game') || n.includes('main')) return '🎮';
+        if (n.includes('skill') || n.includes('kursus') || n.includes('kelas')) return '🎓';
+        if (n.includes('guru')) return '🧑‍🏫';
+        if (n.includes('baca') || n.includes('buku') || n.includes('pustaka')) return '📚';
+        if (n.includes('musik') || n.includes('lagu')) return '🎵';
+        if (n.includes('coding') || n.includes('kode') || n.includes('program')) return '💻';
+        return '🔗';
+    }
+
     function renderPortals() {
         if (!portalGrid) return;
         portalGrid.innerHTML = '';
@@ -880,22 +797,19 @@ document.addEventListener("DOMContentLoaded", () => {
         portals.forEach(portal => {
             const wrap = document.createElement('div');
             wrap.className = 'relative';
-
             const deleteBtn = isAdmin
                 ? `<button data-id="${portal.id}" class="delete-portal-btn absolute -top-2 -right-2 z-10 bg-red-500 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition text-xs">🗑️</button>`
                 : '';
-
             wrap.innerHTML = `
                 ${deleteBtn}
                 <a href="${portal.url}" target="_blank" rel="noopener noreferrer"
                     class="portal-card flex flex-col items-center justify-center text-center gap-2 bg-white border-2 border-teal-100 hover:border-teal-400 rounded-2xl shadow-sm p-5 h-full">
-                    <span class="text-3xl">🔗</span>
+                    <span class="text-3xl">${pickPortalIcon(portal.nama)}</span>
                     <span class="font-bold text-slate-700 text-sm">${portal.nama}</span>
                 </a>
             `;
             portalGrid.appendChild(wrap);
         });
-
         if (isAdmin) {
             document.querySelectorAll('.delete-portal-btn').forEach(btn =>
                 btn.addEventListener('click', e => deletePortal(e.currentTarget.dataset.id)));
@@ -908,41 +822,22 @@ document.addEventListener("DOMContentLoaded", () => {
         catch (e) { alert('Gagal menghapus: ' + e.message); }
     };
 
-    if (addPortalBtn) {
-        addPortalBtn.addEventListener('click', () => {
-            editingPortalId = null;
-            if (portalForm) portalForm.reset();
-            if (portalModalTitle) portalModalTitle.innerText = 'Tambah Portal Terkait';
-            if (portalModal) portalModal.classList.remove('hidden');
-        });
-    }
-
-    if (portalCancelBtn) {
-        portalCancelBtn.addEventListener('click', () => portalModal.classList.add('hidden'));
-    }
-
     if (portalForm) {
         portalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (portalSubmitBtn) {
-                portalSubmitBtn.disabled = true;
-                portalSubmitBtn.innerText = 'Menyimpan...';
-            }
+            if (portalSubmitBtn) { portalSubmitBtn.disabled = true; portalSubmitBtn.innerText = 'Menyimpan...'; }
             try {
                 const data = {
-                    nama: document.getElementById('portal-nama') ? document.getElementById('portal-nama').value : '',
-                    url: document.getElementById('portal-url') ? document.getElementById('portal-url').value : '',
+                    nama: document.getElementById('portal-nama').value,
+                    url: document.getElementById('portal-url').value,
                 };
                 await addDoc(collection(db, "portals"), data);
-                if (portalModal) portalModal.classList.add('hidden');
+                portalModal?.classList.add('hidden');
                 portalForm.reset();
                 editingPortalId = null;
             } catch (e) { alert('Error: ' + e.message); }
             finally {
-                if (portalSubmitBtn) {
-                    portalSubmitBtn.disabled = false;
-                    portalSubmitBtn.innerText = 'Simpan';
-                }
+                if (portalSubmitBtn) { portalSubmitBtn.disabled = false; portalSubmitBtn.innerText = 'Simpan'; }
             }
         });
     }
@@ -954,16 +849,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const p = postersData[id];
         if (!p) return;
         editingPosterId = id;
-        if (document.getElementById('poster-title')) document.getElementById('poster-title').value = p.title || '';
-        if (document.getElementById('poster-category')) document.getElementById('poster-category').value = p.category || '';
-        if (document.getElementById('poster-link')) document.getElementById('poster-link').value = p.registrationLink || '';
-        if (document.getElementById('poster-date')) document.getElementById('poster-date').value = p.date || '';
-        if (document.getElementById('poster-description')) document.getElementById('poster-description').value = p.description || '';
-        if (document.getElementById('poster-image-url')) document.getElementById('poster-image-url').value = p.imageUrl || '';
+        document.getElementById('poster-title').value = p.title || '';
+        document.getElementById('poster-category').value = p.category || '';
+        document.getElementById('poster-link').value = p.registrationLink || '';
+        document.getElementById('poster-date').value = p.date || '';
+        document.getElementById('poster-description').value = p.description || '';
+        document.getElementById('poster-image-url').value = p.imageUrl || '';
         if (posterModalTitle) posterModalTitle.innerText = 'Edit Event / Pengumuman';
-        if (posterModal) posterModal.classList.remove('hidden');
+        posterModal?.classList.remove('hidden');
     };
-
     window.deletePoster = async function (id) {
         if (!confirm('Hapus event ini dari database?')) return;
         try { await deleteDoc(doc(db, "posters", id)); }
@@ -973,59 +867,46 @@ document.addEventListener("DOMContentLoaded", () => {
     if (posterForm) {
         posterForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (posterSubmitBtn) {
-                posterSubmitBtn.disabled = true;
-                posterSubmitBtn.innerText = 'Menyimpan...';
-            }
+            if (posterSubmitBtn) { posterSubmitBtn.disabled = true; posterSubmitBtn.innerText = 'Menyimpan...'; }
             try {
-                // [BARU] POIN 5: pastikan link Drive dikonversi lagi sebelum disimpan (jaga-jaga kalau blur tidak sempat terpicu)
-                const rawImageUrl = document.getElementById('poster-image-url') ? document.getElementById('poster-image-url').value : '';
+                const rawImageUrl = document.getElementById('poster-image-url').value;
                 const data = {
-                    title: document.getElementById('poster-title') ? document.getElementById('poster-title').value : '',
-                    category: document.getElementById('poster-category') ? document.getElementById('poster-category').value : '',
-                    registrationLink: document.getElementById('poster-link') ? document.getElementById('poster-link').value : '',
-                    date: document.getElementById('poster-date') ? document.getElementById('poster-date').value : '',
-                    description: document.getElementById('poster-description') ? document.getElementById('poster-description').value : '',
+                    title: document.getElementById('poster-title').value,
+                    category: document.getElementById('poster-category').value,
+                    registrationLink: document.getElementById('poster-link').value,
+                    date: document.getElementById('poster-date').value,
+                    description: document.getElementById('poster-description').value,
                     imageUrl: convertGoogleDriveLink(rawImageUrl),
                 };
-                if (editingPosterId) {
-                    await updateDoc(doc(db, "posters", editingPosterId), data);
-                } else {
-                    await addDoc(collection(db, "posters"), data);
-                }
-                if (posterModal) posterModal.classList.add('hidden');
+                if (editingPosterId) await updateDoc(doc(db, "posters", editingPosterId), data);
+                else await addDoc(collection(db, "posters"), data);
+                posterModal?.classList.add('hidden');
                 posterForm.reset();
                 editingPosterId = null;
             } catch (e) { alert('Error: ' + e.message); }
             finally {
-                if (posterSubmitBtn) {
-                    posterSubmitBtn.disabled = false;
-                    posterSubmitBtn.innerText = 'Simpan';
-                }
+                if (posterSubmitBtn) { posterSubmitBtn.disabled = false; posterSubmitBtn.innerText = 'Simpan'; }
             }
         });
     }
 
     // ======================================
-    // CRUD: MATERIALS
+    // CRUD: MATERIALS [DIUBAH] POIN 3: field baru (angka, judul, slideLink)
     // ======================================
     window.editMaterial = function (id) {
         const m = materialsData[id];
         if (!m) return;
         editingMaterialId = id;
-        if (document.getElementById('mat-jenjang')) document.getElementById('mat-jenjang').value = m.jenjang || '';
-        if (document.getElementById('mat-matpel')) document.getElementById('mat-matpel').value = m.matpel || '';
-        if (document.getElementById('mat-judul')) document.getElementById('mat-judul').value = m.judul_topik || '';
-        if (document.getElementById('mat-tujuan')) document.getElementById('mat-tujuan').value = m.tujuan_belajar || '';
-        if (document.getElementById('mat-karakter')) document.getElementById('mat-karakter').value = m.karakter_maskot || '';
-        if (document.getElementById('mat-konten')) document.getElementById('mat-konten').value = m.konten_slide || '[]';
-        if (document.getElementById('mat-latihan')) document.getElementById('mat-latihan').value = m.latihan_soal || '[]';
-        if (document.getElementById('mat-otakhebat')) document.getElementById('mat-otakhebat').value = m.otak_hebat || '';
-        if (document.getElementById('mat-download')) document.getElementById('mat-download').value = m.download_pptx_url || '';
-        if (materialModalTitle) materialModalTitle.innerText = 'Edit Materi';
-        if (materialModal) materialModal.classList.remove('hidden');
+        document.getElementById('mat-jenjang').value = m.jenjang || '';
+        document.getElementById('mat-matpel').value = m.matpel || '';
+        document.getElementById('mat-angka').value = m.angka || '1';
+        document.getElementById('mat-judul').value = m.judul || '';
+        document.getElementById('mat-slide-link').value = m.slideLink || '';
+        if (materialModalTitle) materialModalTitle.innerText = 'Edit Materi & Pembahasan';
+        materialModal?.classList.remove('hidden');
+        // Tutup modal daftar materi sementara supaya form edit terlihat jelas
+        materiListModal?.classList.add('hidden');
     };
-
     window.deleteMaterial = async function (id) {
         if (!confirm('Hapus materi ini dari database?')) return;
         try { await deleteDoc(doc(db, "materials", id)); }
@@ -1035,47 +916,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (materialForm) {
         materialForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (materialSubmitBtn) {
-                materialSubmitBtn.disabled = true;
-                materialSubmitBtn.innerText = 'Menyimpan...';
-            }
+            if (materialSubmitBtn) { materialSubmitBtn.disabled = true; materialSubmitBtn.innerText = 'Menyimpan...'; }
             try {
-                const kontenVal = document.getElementById('mat-konten') ? document.getElementById('mat-konten').value : '';
-                const latihanVal = document.getElementById('mat-latihan') ? document.getElementById('mat-latihan').value : '';
-                try { JSON.parse(kontenVal || '[]'); } catch (e) { throw new Error('Format JSON Konten Slide tidak valid.'); }
-                try { JSON.parse(latihanVal || '[]'); } catch (e) { throw new Error('Format JSON Latihan Soal tidak valid.'); }
-
                 const data = {
-                    jenjang: document.getElementById('mat-jenjang') ? document.getElementById('mat-jenjang').value : '',
-                    matpel: document.getElementById('mat-matpel') ? document.getElementById('mat-matpel').value : '',
-                    judul_topik: document.getElementById('mat-judul') ? document.getElementById('mat-judul').value : '',
-                    tujuan_belajar: document.getElementById('mat-tujuan') ? document.getElementById('mat-tujuan').value : '',
-                    karakter_maskot: document.getElementById('mat-karakter') ? document.getElementById('mat-karakter').value : '',
-                    konten_slide: kontenVal || '[]',
-                    latihan_soal: latihanVal || '[]',
-                    otak_hebat: document.getElementById('mat-otakhebat') ? document.getElementById('mat-otakhebat').value : '',
-                    download_pptx_url: document.getElementById('mat-download') ? document.getElementById('mat-download').value : ''
+                    jenjang: document.getElementById('mat-jenjang').value,
+                    matpel: document.getElementById('mat-matpel').value,
+                    angka: document.getElementById('mat-angka').value,
+                    judul: document.getElementById('mat-judul').value,
+                    slideLink: document.getElementById('mat-slide-link').value,
                 };
-
-                if (editingMaterialId) {
-                    await updateDoc(doc(db, "materials", editingMaterialId), data);
-                } else {
-                    await addDoc(collection(db, "materials"), data);
-                }
-                if (materialModal) materialModal.classList.add('hidden');
+                if (editingMaterialId) await updateDoc(doc(db, "materials", editingMaterialId), data);
+                else await addDoc(collection(db, "materials"), data);
+                materialModal?.classList.add('hidden');
                 materialForm.reset();
                 editingMaterialId = null;
             } catch (e) { alert('Error: ' + e.message); }
             finally {
-                if (materialSubmitBtn) {
-                    materialSubmitBtn.disabled = false;
-                    materialSubmitBtn.innerText = 'Simpan Materi';
-                }
+                if (materialSubmitBtn) { materialSubmitBtn.disabled = false; materialSubmitBtn.innerText = 'Simpan Materi'; }
             }
         });
     }
 
-    // [BARU] POIN 3: render kotak kelas begitu halaman siap (sebelum data Firebase datang pun kotak tetap tampil)
+    // Render awal (sebelum data Firestore datang) agar UI tidak kosong total
     renderKelasBoxes();
-    renderPortals(); // [BARU] POIN 4: hindari grid kosong sebelum listener Firestore aktif
+    renderPortals();
+    renderMitra();
 });
