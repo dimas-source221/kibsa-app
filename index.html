@@ -137,65 +137,92 @@
 
     <main class="bg-gradient-to-b from-[#a3e635] via-[#ecfccb] to-white pb-24 pt-8 flex-grow">
 
-        <!-- SECTION: 4 KARTU MENU UTAMA -->
+        <!-- SECTION: 5 KARTU MENU UTAMA [DIUBAH] POIN 3: tambah kartu ke-5 + tombol "+ Lihat Detail" -->
         <section class="container mx-auto px-6 mb-24">
             <div class="text-center max-w-3xl mx-auto mb-16">
                 <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">Pilih Kebutuhan Belajarmu</h2>
                 <p class="text-slate-700 text-lg font-medium">KIBSA hadir menyediakan berbagai materi dan program
                     pilihan untuk menemani perjalanan belajarmu secara mandiri dan menyenangkan.</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Card 1: [DIUBAH] POIN 1: subjudul baru -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <!-- Card 1: Materi & Pembahasan -->
                 <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
-                    <div class="p-6">
-                        <div class="w-24 h-24 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                            <svg class="w-16 h-16 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
+                    <div class="p-6 flex-grow">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Materi & Pembahasan</h3>
+                        <h3 class="text-lg font-bold text-slate-800 text-center mb-2">Materi & Pembahasan</h3>
                         <p class="text-slate-600 text-sm text-center">Materi modul atau pembelajaran</p>
                     </div>
+                    <div class="p-4 pt-0"><button onclick="openCardInfoModal('materi')" class="w-full text-xs font-bold bg-green-50 text-green-700 hover:bg-green-100 py-2 rounded-full transition">+ Lihat Detail</button></div>
                 </div>
 
-                <!-- Card 2: tetap -->
+                <!-- Card 2: Uji Mandiri -->
                 <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
-                    <div class="p-6">
-                        <div class="w-24 h-24 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
-                            <svg class="w-16 h-16 text-purple-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>
+                    <div class="p-6 flex-grow">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-purple-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Uji Mandiri</h3>
+                        <h3 class="text-lg font-bold text-slate-800 text-center mb-2">Uji Mandiri</h3>
                         <p class="text-slate-600 text-sm text-center">Latihan Soal</p>
                     </div>
+                    <div class="p-4 pt-0"><button onclick="openCardInfoModal('uji')" class="w-full text-xs font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 py-2 rounded-full transition">+ Lihat Detail</button></div>
                 </div>
 
-                <!-- Card 3: [DIUBAH] POIN 1: jadi "Mitra Kolaborasi", link ke seksi Mitra Kolaborasi -->
-                <a href="#mitra-kolaborasi" class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
-                    <div class="p-6">
-                        <div class="w-24 h-24 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
-                            <svg class="w-16 h-16 text-orange-500" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path></svg>
+                <!-- Card 3: Mitra Kolaborasi -->
+                <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                    <div class="p-6 flex-grow">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-orange-500" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path></svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Mitra Kolaborasi</h3>
+                        <h3 class="text-lg font-bold text-slate-800 text-center mb-2">Mitra Kolaborasi</h3>
                         <p class="text-slate-600 text-sm text-center">bekerjasama dengan guru, komunitas, maupun lembaga/pihak luar.</p>
                     </div>
-                </a>
+                    <div class="p-4 pt-0 flex gap-2">
+                        <a href="#mitra-kolaborasi" class="flex-1 text-center text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 py-2 rounded-full transition">Lihat Mitra</a>
+                        <button onclick="openCardInfoModal('mitra')" class="flex-1 text-xs font-bold bg-orange-50 text-orange-700 hover:bg-orange-100 py-2 rounded-full transition">+ Detail</button>
+                    </div>
+                </div>
 
-                <!-- Card 4: tetap -->
+                <!-- Card 4: Proyek & Program -->
                 <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
-                    <div class="p-6">
-                        <div class="w-24 h-24 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                            <svg class="w-16 h-16 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path></svg>
+                    <div class="p-6 flex-grow">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path></svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Proyek & Program</h3>
+                        <h3 class="text-lg font-bold text-slate-800 text-center mb-2">Proyek & Program</h3>
                         <p class="text-slate-600 text-sm text-center">Etalase kolaborasi bimbel & instansi mitra KIBSA</p>
                     </div>
+                    <div class="p-4 pt-0"><button onclick="openCardInfoModal('proyek')" class="w-full text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 py-2 rounded-full transition">+ Lihat Detail</button></div>
+                </div>
+
+                <!-- Card 5: [BARU] POIN 3: Layanan KIBSA -->
+                <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                    <div class="p-6 flex-grow">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-teal-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-teal-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 text-center mb-2">Layanan KIBSA</h3>
+                        <p class="text-slate-600 text-sm text-center">Ruang belajar gratis & webinar edukasi</p>
+                    </div>
+                    <div class="p-4 pt-0"><button onclick="openCardInfoModal('layanan')" class="w-full text-xs font-bold bg-teal-50 text-teal-700 hover:bg-teal-100 py-2 rounded-full transition">+ Lihat Detail</button></div>
                 </div>
             </div>
         </section>
 
-        <!-- 6 KOTAK KELAS -->
+        <!-- [BARU] POIN 3: MODAL INFO KARTU FITUR (dipakai bersama oleh ke-5 kartu) -->
+        <div id="card-info-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+                <button onclick="closeCardInfoModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
+                <h2 id="card-info-title" class="text-xl font-extrabold text-slate-800 mb-3"></h2>
+                <p id="card-info-body" class="text-slate-600 text-sm leading-relaxed"></p>
+            </div>
+        </div>
+
+        <!-- ROOM 1-6 -->
         <section id="kelas-section" class="container mx-auto px-6 max-w-6xl mb-24">
             <div class="text-center max-w-3xl mx-auto mb-10">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">📚 Pilih Kelasmu</h2>
-                <p class="text-slate-700 text-lg font-medium">Klik kotak kelasmu, lalu pilih mata pelajaran yang ingin kamu pelajari hari ini.</p>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">🚪 Pilih Room, klik kotak Room-mu, lalu pilih materi mata pelajaran yang ingin kamu pelajari hari ini.</h2>
             </div>
             <div id="kelas-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"></div>
         </section>
@@ -247,6 +274,74 @@
                 <button id="add-mitra-btn" class="hidden mt-4 md:mt-0 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition">+ Tambah Mitra</button>
             </div>
             <div id="mitra-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <!-- [BARU] POIN 4: tombol "Lihat Semua Mitra" (show more, tanpa marquee/filter) -->
+            <div id="mitra-showmore-wrap" class="hidden text-center mt-8">
+                <button onclick="openAllMitraModal()" class="bg-white border-2 border-orange-300 text-orange-600 hover:bg-orange-50 font-bold py-2.5 px-8 rounded-full shadow-sm transition">Lihat Semua Mitra</button>
+            </div>
+        </section>
+
+        <!-- [BARU] POIN 4: MODAL DAFTAR LENGKAP MITRA -->
+        <div id="mitra-all-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto p-6 relative shadow-2xl">
+                <button onclick="closeAllMitraModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
+                <h2 class="text-2xl font-extrabold text-slate-800 mb-6">Semua Mitra Kolaborasi</h2>
+                <div id="mitra-all-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+
+        <!-- [BARU] POIN 6: SEKSI FAQ -->
+        <section id="faq-section" class="container mx-auto px-6 max-w-3xl mt-24">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-2 flex items-center justify-center gap-3"><span>❓</span> FAQ</h2>
+                <p class="text-slate-600 font-medium">Pertanyaan yang sering ditanyakan seputar KIBSA.</p>
+            </div>
+            <div class="space-y-3">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <button class="faq-question w-full flex items-center justify-between text-left p-4 font-bold text-slate-800">
+                        <span>Apa itu KIBSA?</span><span class="faq-icon text-xl text-indigo-500">+</span>
+                    </button>
+                    <div class="faq-answer hidden px-4 pb-4 text-sm text-slate-600 leading-relaxed">
+                        KIBSA adalah portal belajar digital yang gratis dan terbuka untuk semua anak, khususnya siswa SD.
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <button class="faq-question w-full flex items-center justify-between text-left p-4 font-bold text-slate-800">
+                        <span>Apakah KIBSA dipungut biaya?</span><span class="faq-icon text-xl text-indigo-500">+</span>
+                    </button>
+                    <div class="faq-answer hidden px-4 pb-4 text-sm text-slate-600 leading-relaxed">
+                        Tidak. Semua modul materi utama di KIBSA 100% gratis untuk digunakan siapa saja.
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <button class="faq-question w-full flex items-center justify-between text-left p-4 font-bold text-slate-800">
+                        <span>Bagaimana cara bergabung menjadi Mitra/Narasumber?</span><span class="faq-icon text-xl text-indigo-500">+</span>
+                    </button>
+                    <div class="faq-answer hidden px-4 pb-4 text-sm text-slate-600 leading-relaxed">
+                        Terbuka untuk guru, mahasiswa PGSD/non-PGSD, dan komunitas lokal. Silakan hubungi kami melalui kontak resmi di bagian bawah halaman ini.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- [BARU] POIN 6: SEKSI FEEDBACK -->
+        <section id="feedback-section" class="container mx-auto px-6 max-w-xl mt-24">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-2 flex items-center justify-center gap-3"><span>💬</span> Masukan & Saran</h2>
+                <p class="text-slate-600 font-medium">Punya saran, kesan, atau testimoni untuk KIBSA? Ceritakan pada kami!</p>
+            </div>
+            <form id="feedback-form" class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 space-y-4">
+                <div><label class="block text-sm font-bold mb-1">Nama</label><input type="text" id="feedback-nama" class="w-full border rounded p-2" required></div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">Peran</label>
+                    <select id="feedback-peran" class="w-full border rounded p-2">
+                        <option>Siswa</option>
+                        <option>Guru</option>
+                        <option>Umum</option>
+                    </select>
+                </div>
+                <div><label class="block text-sm font-bold mb-1">Pesan/Saran</label><textarea id="feedback-pesan" class="w-full border rounded p-2" rows="4" required></textarea></div>
+                <button type="submit" id="feedback-submit-btn" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700">Kirim Masukan</button>
+            </form>
         </section>
 
         <div id="material-grid" class="hidden"></div>
@@ -268,16 +363,21 @@
             </div>
             <div class="md:text-right">
                 <h3 class="text-lg font-bold text-slate-100 mb-5">Kontak & Layanan</h3>
-                <div class="flex md:justify-end flex-wrap gap-3">
-                    <a href="https://t.me/6285757034924" target="_blank" rel="noopener noreferrer"
-                        class="inline-flex items-center space-x-3 bg-blue-500/10 hover:bg-blue-600 border border-blue-500/30 hover:border-transparent text-blue-300 hover:text-white px-5 py-3 rounded-xl transition duration-300 group shadow-lg">
-                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" /></svg>
-                        <span class="font-semibold text-sm">Telegram</span>
+                <!-- [DIUBAH] POIN 7: nomor telepon pribadi dihapus; tautan disusun vertikal (stack), ikon + label ringkas -->
+                <div class="flex flex-col md:items-end gap-3">
+                    <a href="https://t.me/+8JDU7tSWvto3ZWI1" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center gap-3 bg-blue-500/10 hover:bg-blue-600 border border-blue-500/30 hover:border-transparent text-blue-300 hover:text-white px-5 py-3 rounded-xl transition duration-300 shadow-lg w-full md:w-auto">
+                        <svg class="w-5 h-5 fill-current flex-shrink-0" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" /></svg>
+                        <span class="font-semibold text-sm">Grup Telegram</span>
                     </a>
-                    <!-- [BARU] POIN 7: email resmi support -->
+                    <a href="https://whatsapp.com/channel/0029Vb9c8UhK5cD8PtM0nY1C" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center gap-3 bg-green-500/10 hover:bg-green-600 border border-green-500/30 hover:border-transparent text-green-300 hover:text-white px-5 py-3 rounded-xl transition duration-300 shadow-lg w-full md:w-auto">
+                        <svg class="w-5 h-5 fill-current flex-shrink-0" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.12.553 4.113 1.518 5.85L0 24l6.293-1.492A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-1.892 0-3.657-.51-5.184-1.398l-.372-.22-3.85.911.94-3.752-.242-.386A9.708 9.708 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
+                        <span class="font-semibold text-sm">Saluran WhatsApp</span>
+                    </a>
                     <a href="mailto:kibsaportalbelajar@gmail.com"
-                        class="inline-flex items-center space-x-3 bg-teal-500/10 hover:bg-teal-600 border border-teal-500/30 hover:border-transparent text-teal-300 hover:text-white px-5 py-3 rounded-xl transition duration-300 group shadow-lg">
-                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        class="inline-flex items-center gap-3 bg-teal-500/10 hover:bg-teal-600 border border-teal-500/30 hover:border-transparent text-teal-300 hover:text-white px-5 py-3 rounded-xl transition duration-300 shadow-lg w-full md:w-auto">
+                        <svg class="w-5 h-5 fill-current flex-shrink-0" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
                         <span class="font-semibold text-sm">kibsaportalbelajar@gmail.com</span>
                     </a>
                 </div>
@@ -317,7 +417,7 @@
                     <p class="mt-2 leading-relaxed text-justify">Menjadi portal belajar digital lokal yang ramah, inklusif, dan sederhana untuk membantu anak-anak di daerah memperoleh kesempatan belajar dasar yang sama.</p></div>
                 <div><h3 class="font-bold text-lg text-slate-900 flex items-center"><span class="mr-2">🎯</span>Misi</h3>
                     <ul class="list-decimal pl-5 mt-2 space-y-2 leading-relaxed">
-                        <li>Menyediakan materi pembelajaran inti tingkat SD (Kelas 1–6) dan materi umum yang gratis, terstruktur, dan ringan diakses lewat HP.</li>
+                        <li>Menyediakan materi pembelajaran inti tingkat SD (Room 1–6) dan materi umum yang gratis, terstruktur, dan ringan diakses lewat HP.</li>
                         <li>Membuka wadah kolaborasi bagi guru, tenaga pendidik, komunitas lokal dan siapa saja terbuka untuk umum untuk saling berbagi ilmu.</li>
                         <li>Menyediakan akses latihan soal sederhana dan kuis edukasi guna mengasah fondasi belajar anak.</li>
                         <li>Menjadi jembatan awal bagi anak-anak untuk membangun rasa percaya diri sebelum melangkah ke tingkat pendidikan yang lebih tinggi.</li>
@@ -368,7 +468,7 @@
     <div id="mapel-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
             <button onclick="closeMapelModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
-            <h2 id="mapel-modal-title" class="text-2xl font-extrabold text-slate-800 mb-1">Kelas 1 SD</h2>
+            <h2 id="mapel-modal-title" class="text-2xl font-extrabold text-slate-800 mb-1">Room 1</h2>
             <p class="text-slate-500 mb-6">Pilih mata pelajaran yang ingin kamu pelajari.</p>
             <div id="mapel-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
         </div>
@@ -378,7 +478,7 @@
     <div id="materi-list-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
             <button onclick="closeMateriListModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
-            <h2 id="materi-list-title" class="text-2xl font-extrabold text-slate-800 mb-1">Matematika — Kelas 1 SD</h2>
+            <h2 id="materi-list-title" class="text-2xl font-extrabold text-slate-800 mb-1">Matematika — Room 1</h2>
             <p class="text-slate-500 mb-6 text-sm">Materi & Pembahasan yang tersedia untuk mata pelajaran ini.</p>
             <div id="materi-list" class="space-y-3"></div>
         </div>
@@ -490,15 +590,14 @@
             <form id="material-form" class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-bold mb-1">Jenjang/Kelas</label>
+                        <label class="block text-sm font-bold mb-1">Room</label>
                         <select id="mat-jenjang" class="w-full border rounded p-2">
-                            <option>Kelas 1 SD</option><option>Kelas 2 SD</option><option>Kelas 3 SD</option>
-                            <option>Kelas 4 SD</option><option>Kelas 5 SD</option><option>Kelas 6 SD</option>
+                            <option>Room 1</option><option>Room 2</option><option>Room 3</option>
+                            <option>Room 4</option><option>Room 5</option><option>Room 6</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-1">Mata Pelajaran</label>
-                        <!-- [DIUBAH] POIN 2: IPAS dipisah jadi IPA & IPS -->
                         <select id="mat-matpel" class="w-full border rounded p-2">
                             <option>Bahasa Indonesia</option>
                             <option>IPA</option>
@@ -506,6 +605,8 @@
                             <option>Bahasa Inggris</option>
                             <option>Matematika</option>
                             <option>Pendidikan Pancasila</option>
+                            <!-- [BARU] POIN 2: mapel baru -->
+                            <option>Seni Budaya</option>
                         </select>
                     </div>
                 </div>
