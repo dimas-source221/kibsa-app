@@ -17,7 +17,7 @@ import {
 const ADMIN_EMAIL = 'kibsaportalbelajar@gmail.com';
 const ADMIN_USERNAME = 'KIBSA';
 
-const KELAS_LIST = ['Kelas 1 SD', 'Kelas 2 SD', 'Kelas 3 SD', 'Kelas 4 SD', 'Kelas 5 SD', 'Kelas 6 SD'];
+const ROOM_LIST = ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Room 5', 'Room 6'];
 
 // [DIUBAH] POIN 2: IPAS dipisah jadi IPA & IPS tersendiri, tanpa Otak Hebat/Level
 const MAPEL_LIST = [
@@ -27,6 +27,7 @@ const MAPEL_LIST = [
     { nama: 'Bahasa Inggris', icon: '🔤' },
     { nama: 'Matematika', icon: '🔢' },
     { nama: 'Pendidikan Pancasila', icon: '🇮🇩' },
+    { nama: 'Seni Budaya', icon: '🎨' },
 ];
 
 // ======================================
@@ -176,8 +177,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // ======================================
     // Isi dropdown "Angka Materi" 1-20
     // ======================================
+    // [DIUBAH] POIN 2: Angka Materi diperluas hingga 30
     if (matAngkaSelect) {
-        for (let i = 1; i <= 20; i++) {
+        for (let i = 1; i <= 30; i++) {
             const opt = document.createElement('option');
             opt.value = i;
             opt.innerText = i;
@@ -356,23 +358,23 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // ======================================
-    // RENDER 6 KOTAK KELAS
+    // RENDER 6 KOTAK ROOM
     // ======================================
     function renderKelasBoxes() {
         if (!kelasGrid) return;
         kelasGrid.innerHTML = '';
         const kelasColors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-blue-400', 'bg-purple-400'];
-        KELAS_LIST.forEach((kelas, i) => {
-            const nomor = kelas.match(/\d/)[0];
+        ROOM_LIST.forEach((room, i) => {
+            const nomor = room.match(/\d/)[0];
             const box = document.createElement('div');
             box.className = 'kelas-box bg-white rounded-2xl shadow-md hover:shadow-xl border border-slate-100 flex flex-col items-center p-4 cursor-pointer';
             box.innerHTML = `
                 <div class="${kelasColors[i]} w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl font-black mb-3 shadow">${nomor}</div>
-                <p class="font-bold text-slate-700 text-sm text-center">Kelas ${nomor} SD</p>
-                <button class="mt-3 w-full text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 py-2 rounded-full transition">Masuk Kelas</button>
+                <p class="font-bold text-slate-700 text-sm text-center">${room}</p>
+                <button class="mt-3 w-full text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 py-2 rounded-full transition">Masuk Room</button>
             `;
-            // [DIUBAH] POIN 8B: akses materi wajib login — kalau belum, arahkan ke modal Masuk/Daftar
-            box.addEventListener('click', () => requireAuth(() => openKelasModal(kelas)));
+            // [DIUBAH] POIN 8B (overhaul sebelumnya): akses materi wajib login
+            box.addEventListener('click', () => requireAuth(() => openKelasModal(room)));
             kelasGrid.appendChild(box);
         });
     }
@@ -617,46 +619,74 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     window.closeMitraDetail = () => mitraDetailModal?.classList.add('hidden');
 
+    const MITRA_PREVIEW_COUNT = 8; // [BARU] POIN 4: jumlah kartu mitra yang tampil di halaman utama
+
+    function buildMitraCard(m) {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl transition-all relative';
+        const adminActions = isAdmin ? `
+            <div class="absolute top-2 right-2 flex gap-2 z-10">
+                <button data-id="${m.id}" class="edit-mitra-btn bg-yellow-400 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-yellow-500 transition">✏️</button>
+                <button data-id="${m.id}" class="delete-mitra-btn bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition">🗑️</button>
+            </div>` : '';
+        card.innerHTML = `
+            <div class="relative w-full mitra-card-img bg-slate-100 flex-shrink-0 overflow-hidden">
+                <img src="${m.imageUrl}" alt="${m.judul}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/500x400/e2e8f0/94a3b8?text=Mitra'">
+                ${adminActions}
+            </div>
+            <div class="p-4 flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <h3 class="text-base font-bold text-slate-800 truncate">${m.judul}</h3>
+                    <p class="text-slate-400 text-[0.7rem] font-semibold">📅 ${m.date}</p>
+                </div>
+                <button data-id="${m.id}" class="view-mitra-detail-btn flex-shrink-0 text-[0.7rem] font-bold bg-orange-50 text-orange-700 hover:bg-orange-100 px-3 py-1.5 rounded-full transition">+ Lihat Detail</button>
+            </div>`;
+        return card;
+    }
+
+    function wireMitraCardButtons(container) {
+        container.querySelectorAll('.view-mitra-detail-btn').forEach(btn =>
+            btn.addEventListener('click', e => openMitraDetail(e.currentTarget.dataset.id)));
+        if (isAdmin) {
+            container.querySelectorAll('.edit-mitra-btn').forEach(btn =>
+                btn.addEventListener('click', e => editMitra(e.currentTarget.dataset.id)));
+            container.querySelectorAll('.delete-mitra-btn').forEach(btn =>
+                btn.addEventListener('click', e => deleteMitra(e.currentTarget.dataset.id)));
+        }
+    }
+
     function renderMitra() {
         if (!mitraGrid) return;
         mitraGrid.innerHTML = '';
         const items = Object.values(mitraData);
+        const mitraShowMoreWrap = document.getElementById('mitra-showmore-wrap');
         if (items.length === 0) {
             mitraGrid.innerHTML = '<p class="text-slate-400 col-span-full text-center py-10">Belum ada mitra kolaborasi. Admin dapat menambahkan yang baru.</p>';
+            if (mitraShowMoreWrap) mitraShowMoreWrap.classList.add('hidden');
             return;
         }
-        items.forEach(m => {
-            const card = document.createElement('div');
-            card.className = 'bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl transition-all relative';
-            const adminActions = isAdmin ? `
-                <div class="absolute top-2 right-2 flex gap-2 z-10">
-                    <button data-id="${m.id}" class="edit-mitra-btn bg-yellow-400 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-yellow-500 transition">✏️</button>
-                    <button data-id="${m.id}" class="delete-mitra-btn bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition">🗑️</button>
-                </div>` : '';
-            card.innerHTML = `
-                <div class="relative w-full mitra-card-img bg-slate-100 flex-shrink-0 overflow-hidden">
-                    <img src="${m.imageUrl}" alt="${m.judul}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/500x400/e2e8f0/94a3b8?text=Mitra'">
-                    ${adminActions}
-                </div>
-                <div class="p-4 flex items-center justify-between gap-2">
-                    <div class="min-w-0">
-                        <h3 class="text-base font-bold text-slate-800 truncate">${m.judul}</h3>
-                        <p class="text-slate-400 text-[0.7rem] font-semibold">📅 ${m.date}</p>
-                    </div>
-                    <button data-id="${m.id}" class="view-mitra-detail-btn flex-shrink-0 text-[0.7rem] font-bold bg-orange-50 text-orange-700 hover:bg-orange-100 px-3 py-1.5 rounded-full transition">+ Lihat Detail</button>
-                </div>`;
-            mitraGrid.appendChild(card);
-        });
 
-        mitraGrid.querySelectorAll('.view-mitra-detail-btn').forEach(btn =>
-            btn.addEventListener('click', e => openMitraDetail(e.currentTarget.dataset.id)));
-        if (isAdmin) {
-            mitraGrid.querySelectorAll('.edit-mitra-btn').forEach(btn =>
-                btn.addEventListener('click', e => editMitra(e.currentTarget.dataset.id)));
-            mitraGrid.querySelectorAll('.delete-mitra-btn').forEach(btn =>
-                btn.addEventListener('click', e => deleteMitra(e.currentTarget.dataset.id)));
-        }
+        // [BARU] POIN 4: hanya tampilkan 8 kartu terbaru di halaman utama
+        const preview = items.slice(0, MITRA_PREVIEW_COUNT);
+        preview.forEach(m => mitraGrid.appendChild(buildMitraCard(m)));
+        wireMitraCardButtons(mitraGrid);
+
+        if (mitraShowMoreWrap) mitraShowMoreWrap.classList.toggle('hidden', items.length <= MITRA_PREVIEW_COUNT);
     }
+
+    // [BARU] POIN 4: modal "Lihat Semua Mitra" — daftar penuh (tanpa marquee/slider/filter)
+    window.openAllMitraModal = function () {
+        const modal = document.getElementById('mitra-all-modal');
+        const grid = document.getElementById('mitra-all-grid');
+        if (!modal || !grid) return;
+        grid.innerHTML = '';
+        Object.values(mitraData).forEach(m => grid.appendChild(buildMitraCard(m)));
+        wireMitraCardButtons(grid);
+        modal.classList.remove('hidden');
+    };
+    window.closeAllMitraModal = function () {
+        document.getElementById('mitra-all-modal')?.classList.add('hidden');
+    };
 
     // ======================================
     // MODAL HANDLERS: MATERI (Admin)
@@ -933,6 +963,76 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (e) { alert('Error: ' + e.message); }
             finally {
                 if (materialSubmitBtn) { materialSubmitBtn.disabled = false; materialSubmitBtn.innerText = 'Simpan Materi'; }
+            }
+        });
+    }
+
+    // ======================================
+    // [BARU] POIN 3: MODAL INFO KARTU FITUR ("+ Lihat Detail")
+    // ======================================
+    const CARD_INFO_TEXT = {
+        materi: "Halo Adik-adik! Kamu bisa memulai belajar dari setiap Room ya. Silakan klik Room 1 untuk mempelajari dasar dari setiap mata pelajaran dan berproses ke Room selanjutnya!",
+        uji: "Halo Adik-adik! Kamu bisa mencoba latihan soal interaktif dan kuis pada laman Portal Terkait ya. Semangat melatih pemahamanmu!",
+        mitra: "Ruang kolaborasi terbuka bagi mahasiswa, guru, komunitas lokal, dan masyarakat umum untuk saling berbagi ilmu, modul, dan pengalaman mengajar.",
+        proyek: "Informasi seputar kegiatan webinar, pelatihan, sesi berbagi, dan program pendukung edukasi dari KIBSA.",
+        layanan: "Layanan edukasi inklusif dari KIBSA yang menyediakan ruang belajar gratis, fasilitasi webinar, dan portal integrasi inovasi pendidikan lokal.",
+    };
+    const CARD_INFO_TITLE = {
+        materi: 'Materi & Pembahasan',
+        uji: 'Uji Mandiri',
+        mitra: 'Mitra Kolaborasi',
+        proyek: 'Proyek & Program',
+        layanan: 'Layanan KIBSA',
+    };
+    window.openCardInfoModal = function (key) {
+        const modal = document.getElementById('card-info-modal');
+        const titleEl = document.getElementById('card-info-title');
+        const bodyEl = document.getElementById('card-info-body');
+        if (!modal) return;
+        if (titleEl) titleEl.innerText = CARD_INFO_TITLE[key] || '';
+        if (bodyEl) bodyEl.innerText = CARD_INFO_TEXT[key] || '';
+        modal.classList.remove('hidden');
+    };
+    window.closeCardInfoModal = function () {
+        document.getElementById('card-info-modal')?.classList.add('hidden');
+    };
+
+    // ======================================
+    // [BARU] POIN 6: FAQ ACCORDION
+    // ======================================
+    document.querySelectorAll('.faq-question').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const answer = btn.nextElementSibling;
+            const icon = btn.querySelector('.faq-icon');
+            const isOpen = !answer.classList.contains('hidden');
+            answer.classList.toggle('hidden', isOpen);
+            if (icon) icon.innerText = isOpen ? '+' : '–';
+        });
+    });
+
+    // ======================================
+    // [BARU] POIN 6: FEEDBACK FORM -> Firestore "feedbacks"
+    // ======================================
+    const feedbackForm = document.getElementById('feedback-form');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('feedback-submit-btn');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = 'Mengirim...'; }
+            try {
+                const data = {
+                    nama: document.getElementById('feedback-nama').value,
+                    peran: document.getElementById('feedback-peran').value,
+                    pesan: document.getElementById('feedback-pesan').value,
+                    createdAt: new Date().toISOString(),
+                };
+                await addDoc(collection(db, "feedbacks"), data);
+                feedbackForm.reset();
+                alert('Terima kasih! Masukanmu sudah kami terima. 🙌');
+            } catch (err) {
+                alert('Gagal mengirim masukan: ' + err.message);
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'Kirim Masukan'; }
             }
         });
     }
