@@ -55,6 +55,61 @@
         .portal-card { transition: all .25s ease; }
         .portal-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px -6px rgba(0,0,0,.15); }
 
+        /* [BARU] POIN 8: Kartu interaktif seragam (Fitur, Event/Program, Mitra Kolaborasi) */
+        .ui-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .ui-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,.15), 0 8px 10px -6px rgba(0,0,0,.1);
+        }
+
+        /* [BARU] POIN 8: Animasi entrance/zoom lembut untuk gambar di dalam modal detail */
+        @keyframes modalImageZoomIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-img-zoom {
+            animation: modalImageZoomIn 0.35s ease;
+        }
+        /* Overlay modal fade-in lembut */
+        @keyframes modalOverlayFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-overlay-anim {
+            animation: modalOverlayFadeIn 0.25s ease;
+        }
+
+        /* ====== [BARU] POIN 8: KARTU INTERAKTIF (hover lift + shadow) ====== */
+        .ui-card {
+            border-radius: 1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .ui-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 35px -12px rgba(15, 23, 42, 0.25);
+        }
+
+        /* [BARU] POIN 8: animasi masuk modal (overlay fade + panel pop) */
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes modalPopIn {
+            from { opacity: 0; transform: scale(0.94) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-overlay-anim { animation: modalFadeIn 0.25s ease forwards; }
+        .modal-panel-anim { animation: modalPopIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+        /* [BARU] POIN 8: efek zoom lembut untuk gambar hero di dalam modal detail */
+        @keyframes imageSoftZoom {
+            from { opacity: 0; transform: scale(1.08); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-zoom-img { animation: imageSoftZoom 0.5s ease forwards; }
+
         /* [BARU] Kartu Mitra Kolaborasi — sedikit lebih besar dari kartu Info & Event */
         .mitra-card-img { height: 20rem; }
         @media (min-width: 768px) { .mitra-card-img { height: 22rem; } }
@@ -146,7 +201,7 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 <!-- Card 1: Materi & Pembahasan -->
-                <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                <div class="ui-card bg-white/90 backdrop-blur rounded-2xl shadow-md border border-slate-100 flex flex-col overflow-hidden">
                     <div class="p-6 flex-grow">
                         <div class="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
                             <svg class="w-12 h-12 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
@@ -158,7 +213,7 @@
                 </div>
 
                 <!-- Card 2: Uji Mandiri -->
-                <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                <div class="ui-card bg-white/90 backdrop-blur rounded-2xl shadow-md border border-slate-100 flex flex-col overflow-hidden">
                     <div class="p-6 flex-grow">
                         <div class="w-20 h-20 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
                             <svg class="w-12 h-12 text-purple-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>
@@ -170,7 +225,7 @@
                 </div>
 
                 <!-- Card 3: Mitra Kolaborasi -->
-                <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                <div class="ui-card bg-white/90 backdrop-blur rounded-2xl shadow-md border border-slate-100 flex flex-col overflow-hidden">
                     <div class="p-6 flex-grow">
                         <div class="w-20 h-20 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
                             <svg class="w-12 h-12 text-orange-500" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path></svg>
@@ -185,7 +240,7 @@
                 </div>
 
                 <!-- Card 4: Proyek & Program -->
-                <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                <div class="ui-card bg-white/90 backdrop-blur rounded-2xl shadow-md border border-slate-100 flex flex-col overflow-hidden">
                     <div class="p-6 flex-grow">
                         <div class="w-20 h-20 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
                             <svg class="w-12 h-12 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path></svg>
@@ -197,7 +252,7 @@
                 </div>
 
                 <!-- Card 5: [BARU] POIN 3: Layanan KIBSA -->
-                <div class="bg-white/90 backdrop-blur rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col overflow-hidden">
+                <div class="ui-card bg-white/90 backdrop-blur rounded-2xl shadow-md border border-slate-100 flex flex-col overflow-hidden">
                     <div class="p-6 flex-grow">
                         <div class="w-20 h-20 mx-auto mb-4 bg-teal-100 rounded-full flex items-center justify-center">
                             <svg class="w-12 h-12 text-teal-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" fill-rule="evenodd"></path></svg>
@@ -211,7 +266,7 @@
         </section>
 
         <!-- [BARU] POIN 3: MODAL INFO KARTU FITUR (dipakai bersama oleh ke-5 kartu) -->
-        <div id="card-info-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div id="card-info-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm modal-overlay-anim">
             <div class="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
                 <button onclick="closeCardInfoModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
                 <h2 id="card-info-title" class="text-xl font-extrabold text-slate-800 mb-3"></h2>
@@ -284,7 +339,7 @@
         </section>
 
         <!-- [BARU] POIN 4: MODAL DAFTAR LENGKAP MITRA -->
-        <div id="mitra-all-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div id="mitra-all-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm modal-overlay-anim">
             <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto p-6 relative shadow-2xl">
                 <button onclick="closeAllMitraModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
                 <h2 class="text-2xl font-extrabold text-slate-800 mb-6">Semua Mitra Kolaborasi</h2>
@@ -487,7 +542,7 @@
     </div>
 
     <!-- MODAL PEMILIHAN MAPEL -->
-    <div id="mapel-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="mapel-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm modal-overlay-anim">
         <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
             <button onclick="closeMapelModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
             <h2 id="mapel-modal-title" class="text-2xl font-extrabold text-slate-800 mb-1">Room 1</h2>
@@ -497,7 +552,7 @@
     </div>
 
     <!-- [DIUBAH] POIN 2: MODAL "Materi & Pembahasan" (menggantikan Level Berantai) -->
-    <div id="materi-list-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="materi-list-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm modal-overlay-anim">
         <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
             <button onclick="closeMateriListModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
             <h2 id="materi-list-title" class="text-2xl font-extrabold text-slate-800 mb-1">Matematika — Room 1</h2>
@@ -542,10 +597,10 @@
     </div>
 
     <!-- MODAL DETAIL EVENT -->
-    <div id="poster-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="poster-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm modal-overlay-anim">
         <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl relative">
             <button onclick="closePosterDetail()" class="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white text-slate-500 hover:text-slate-800 font-bold text-xl w-8 h-8 rounded-full flex items-center justify-center shadow">&times;</button>
-            <img id="poster-detail-img" src="" alt="" class="w-full h-56 object-cover bg-slate-100">
+            <img id="poster-detail-img" src="" alt="" class="modal-img-zoom w-full h-56 object-cover bg-slate-100">
             <div class="p-6">
                 <span id="poster-detail-category" class="text-[0.65rem] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full inline-block mb-3"></span>
                 <h2 id="poster-detail-title" class="text-xl font-extrabold text-slate-800 mb-2"></h2>
@@ -593,10 +648,10 @@
     </div>
 
     <!-- [BARU] POIN 6: MODAL DETAIL MITRA -->
-    <div id="mitra-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="mitra-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm modal-overlay-anim">
         <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl relative">
             <button onclick="closeMitraDetail()" class="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white text-slate-500 hover:text-slate-800 font-bold text-xl w-8 h-8 rounded-full flex items-center justify-center shadow">&times;</button>
-            <img id="mitra-detail-img" src="" alt="" class="w-full h-56 object-cover bg-slate-100">
+            <img id="mitra-detail-img" src="" alt="" class="modal-img-zoom w-full h-56 object-cover bg-slate-100">
             <div class="p-6">
                 <h2 id="mitra-detail-title" class="text-xl font-extrabold text-slate-800 mb-2"></h2>
                 <p id="mitra-detail-date" class="text-slate-400 text-xs font-semibold mb-4"></p>
