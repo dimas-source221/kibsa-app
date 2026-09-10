@@ -608,6 +608,14 @@ document.addEventListener("DOMContentLoaded", () => {
         catch (e) { alert('Gagal menghapus: ' + e.message); }
     };
 
+    // [BARU] POIN 8: helper untuk memicu ulang animasi zoom gambar tiap kali modal dibuka
+    function replayZoomAnimation(imgEl) {
+        if (!imgEl) return;
+        imgEl.classList.remove('modal-img-zoom');
+        void imgEl.offsetWidth; // paksa reflow agar animasi bisa diputar ulang
+        imgEl.classList.add('modal-img-zoom');
+    }
+
     window.openMitraDetail = function (id) {
         const m = mitraData[id];
         if (!m || !mitraDetailModal) return;
@@ -615,6 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('mitra-detail-title').innerText = m.judul || '';
         document.getElementById('mitra-detail-date').innerText = '📅 ' + (m.date || '');
         document.getElementById('mitra-detail-description').innerText = m.description || '';
+        replayZoomAnimation(document.getElementById('mitra-detail-img'));
         mitraDetailModal.classList.remove('hidden');
     };
     window.closeMitraDetail = () => mitraDetailModal?.classList.add('hidden');
@@ -623,7 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function buildMitraCard(m) {
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl transition-all relative';
+        card.className = 'ui-card bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col relative';
         const adminActions = isAdmin ? `
             <div class="absolute top-2 right-2 flex gap-2 z-10">
                 <button data-id="${m.id}" class="edit-mitra-btn bg-yellow-400 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-yellow-500 transition">✏️</button>
@@ -748,6 +757,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const linkEl = document.getElementById('poster-detail-link');
         if (poster.registrationLink) { linkEl.href = poster.registrationLink; linkEl.classList.remove('hidden'); }
         else { linkEl.classList.add('hidden'); }
+        replayZoomAnimation(document.getElementById('poster-detail-img'));
         posterDetailModal.classList.remove('hidden');
     };
     window.closePosterDetail = function () { posterDetailModal?.classList.add('hidden'); };
@@ -770,7 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button data-id="${poster.id}" class="edit-poster-btn bg-yellow-400 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-yellow-500 transition">✏️</button>
                     <button data-id="${poster.id}" class="delete-poster-btn bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full shadow hover:bg-red-600 transition">🗑️</button>
                 </div>` : '';
-            card.className = 'bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl transition-all relative h-[22rem]';
+            card.className = 'ui-card bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 flex flex-col relative h-[22rem]';
             card.innerHTML = `
                 <div class="relative w-full h-72 bg-slate-100 flex-shrink-0 overflow-hidden">
                     <img src="${poster.imageUrl}" alt="${poster.title}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x500/e2e8f0/94a3b8?text=Poster'">
