@@ -267,10 +267,10 @@
 
         <!-- [BARU] POIN 3: MODAL INFO KARTU FITUR (dipakai bersama oleh ke-5 kartu) -->
         <div id="card-info-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm modal-overlay-anim">
-            <div class="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+            <div class="bg-white rounded-2xl w-full max-w-[750px] max-h-[90vh] overflow-y-auto p-8 md:p-10 relative shadow-2xl">
                 <button onclick="closeCardInfoModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-bold text-2xl">&times;</button>
-                <h2 id="card-info-title" class="text-xl font-extrabold text-slate-800 mb-3"></h2>
-                <p id="card-info-body" class="text-slate-600 text-sm leading-relaxed"></p>
+                <h2 id="card-info-title" class="text-[22px] md:text-[26px] font-extrabold text-[#1E293B] mb-4"></h2>
+                <p id="card-info-body" class="text-[15px] md:text-[16px] text-slate-700 leading-[1.6]"></p>
             </div>
         </div>
 
@@ -598,14 +598,14 @@
 
     <!-- MODAL DETAIL EVENT -->
     <div id="poster-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm modal-overlay-anim">
-        <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl relative">
+        <div class="bg-white rounded-[20px] w-full max-w-[750px] max-h-[90vh] overflow-y-auto shadow-2xl relative">
             <button onclick="closePosterDetail()" class="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white text-slate-500 hover:text-slate-800 font-bold text-xl w-8 h-8 rounded-full flex items-center justify-center shadow">&times;</button>
-            <img id="poster-detail-img" src="" alt="" class="modal-img-zoom w-full h-56 object-cover bg-slate-100">
-            <div class="p-6">
-                <span id="poster-detail-category" class="text-[0.65rem] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full inline-block mb-3"></span>
-                <h2 id="poster-detail-title" class="text-xl font-extrabold text-slate-800 mb-2"></h2>
-                <p id="poster-detail-date" class="text-slate-400 text-xs font-semibold mb-4"></p>
-                <p id="poster-detail-description" class="text-slate-600 text-sm leading-relaxed mb-6"></p>
+            <img id="poster-detail-img" src="" alt="" class="modal-img-zoom w-full max-h-[380px] md:max-h-[400px] object-cover bg-slate-100">
+            <div class="p-8 md:p-10">
+                <span id="poster-detail-category" class="text-[0.7rem] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full inline-block mb-3"></span>
+                <h2 id="poster-detail-title" class="text-[22px] md:text-[26px] font-extrabold text-[#1E293B] mb-2"></h2>
+                <p id="poster-detail-date" class="text-slate-400 text-sm font-medium mb-4"></p>
+                <p id="poster-detail-description" class="text-[15px] md:text-[16px] text-slate-700 leading-[1.6] mb-6"></p>
                 <a id="poster-detail-link" href="#" target="_blank" class="hidden w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold text-center rounded-full transition shadow-sm">Daftar Sekarang →</a>
             </div>
         </div>
@@ -649,13 +649,13 @@
 
     <!-- [BARU] POIN 6: MODAL DETAIL MITRA -->
     <div id="mitra-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[65] flex items-center justify-center p-4 backdrop-blur-sm modal-overlay-anim">
-        <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl relative">
+        <div class="bg-white rounded-[20px] w-full max-w-[750px] max-h-[90vh] overflow-y-auto shadow-2xl relative">
             <button onclick="closeMitraDetail()" class="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white text-slate-500 hover:text-slate-800 font-bold text-xl w-8 h-8 rounded-full flex items-center justify-center shadow">&times;</button>
-            <img id="mitra-detail-img" src="" alt="" class="modal-img-zoom w-full h-56 object-cover bg-slate-100">
-            <div class="p-6">
-                <h2 id="mitra-detail-title" class="text-xl font-extrabold text-slate-800 mb-2"></h2>
-                <p id="mitra-detail-date" class="text-slate-400 text-xs font-semibold mb-4"></p>
-                <p id="mitra-detail-description" class="text-slate-600 text-sm leading-relaxed"></p>
+            <img id="mitra-detail-img" src="" alt="" class="modal-img-zoom w-full max-h-[380px] md:max-h-[400px] object-cover bg-slate-100">
+            <div class="p-8 md:p-10">
+                <h2 id="mitra-detail-title" class="text-[22px] md:text-[26px] font-extrabold text-[#1E293B] mb-2"></h2>
+                <p id="mitra-detail-date" class="text-slate-400 text-sm font-medium mb-4"></p>
+                <p id="mitra-detail-description" class="text-[15px] md:text-[16px] text-slate-700 leading-[1.6]"></p>
             </div>
         </div>
     </div>
